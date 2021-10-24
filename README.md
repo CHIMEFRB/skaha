@@ -1,2 +1,2 @@
 # skaha
-Skaha Container API
+Python Client for Skaha Container Platform in CANFAR
