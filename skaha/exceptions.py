@@ -20,8 +20,8 @@ class AuthenticationError(APIError):
     pass
 
 
-class InvalidCredentialsError(AuthenticationError):
-    """Invalid Credentials Error."""
+class InvalidCertificateError(AuthenticationError):
+    """Invalid Certificate Error."""
 
     pass
 

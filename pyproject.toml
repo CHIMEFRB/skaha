@@ -9,6 +9,8 @@ license = "MIT"
 python = "^3.7"
 vos = "^3.3.4"
 requests = "^2.26.0"
+attrs = "^21.2.0"
+validators = "^0.18.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
