@@ -5,20 +5,33 @@ from platform import machine, platform, python_version, release, system
 
 from attr import attrib, attrs
 from requests import Session
-from validators import url, uuid
+from validators import url
 
-from skaha.exceptions import InvalidCertificateError, InvalidTokenError, ServerError
+from skaha.exceptions import InvalidCertificateError, ServerError
 
 
 @attrs()
-class Client(Session):
-    """A client for the Skaha server."""
+class SkahaClient(Session):
+    """Skaha Client.
 
-    server = attrib(default="https://ws-cadc.canfar.net")
+    Args:
+        Session (requests.Session): Requests Session Object.
+
+    Raises:
+        ServerError: If the server returns an error.
+        InvalidCertificateError: If the server is given an invalid certificate.
+
+    """
+
+    server = attrib(default="https://ws-uv.canfar.net/skaha")
     certificate = attrib(
         default="{HOME}/.ssl/cadcproxy.pem".format(HOME=environ["HOME"]), type=str
     )
-    token = attrib(default="", type=str)
+    timeout = attrib(default=10, type=int)
+
+    def __attrs_pre_init__(self):
+        """Intialize Session Object."""
+        super().__init__()
 
     @server.validator
     def _check_server(self, attribute, value):
@@ -35,20 +48,13 @@ class Client(Session):
         self.headers.update({"X-Skaha-Authentication-Type": "certificate"})
         self.verify = self.certificate
 
-    @token.validator
-    def _check_token(self, attribute, value):
-        """Check the token."""
-        if value:
-            if not uuid(value):
-                raise InvalidTokenError(f"{value} is not a valid token")
-
     def __attrs_post_init__(self):
         """Post Intialization Attributes."""
         self.headers.update({"Content-Type": "application/json"})
         self.headers.update({"Accept": "application/json"})
         self.headers.update({"User-Agent": "skaha-client"})
-        self.headers.update({"X-Skaha-Client-Version": python_version()})
         self.headers.update({"X-Skaha-Client-Release": "0.1"})
+        self.headers.update({"X-Skaha-Client-Python-Version": python_version()})
         self.headers.update({"X-Skaha-Client-Arch": machine()})
         self.headers.update({"X-Skaha-Client-OS": system()})
         self.headers.update({"X-Skaha-Client-OS-Version": release()})
