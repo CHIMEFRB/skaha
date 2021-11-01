@@ -2,13 +2,7 @@
 
 
 class APIError(Exception):
-    """API Error."""
-
-    pass
-
-
-class ClientError(Exception):
-    """Client Error."""
+    """Errors raised as a result of HTTP Status Codes."""
 
     pass
 
@@ -32,14 +26,8 @@ class InvalidTokenError(AuthenticationError):
     pass
 
 
-class InvalidUserError(AuthenticationError):
-    """Invalid User Error."""
-
-    pass
-
-
-class InvalidPasswordError(AuthenticationError):
-    """Invalid Password Error."""
+class InvalidServerURL(APIError):
+    """Invalid Server URL."""
 
     pass
 
@@ -75,9 +63,14 @@ class ServiceUnavailableError(APIError):
     pass
 
 
-# Client Errors
-class ServerError(ClientError):
-    """Server Error."""
+class ClientError(Exception):
+    """Internal Client Error."""
+
+    pass
+
+
+class ParameterError(ClientError):
+    """Invalid Parameters."""
 
     pass
 
