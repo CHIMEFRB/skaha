@@ -9,9 +9,16 @@ pip install skaha
 
 ## Basic Usage
 
-```
+```python
 from skaha.session import Session
-
 session = Session()
-session.create(name="<name>", image="<image>")
+
+# Create a session
+id = session.create(name="<name>", image="<image>")
+
+# Get logs
+session.logs(id)
+
+# Destroy session
+session.destroy(id)
 ```
