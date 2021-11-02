@@ -1,10 +1,13 @@
 """Skaha Headless Session."""
-from typing import Optional
+from typing import Any, Optional
 
 from attr import attrs
 
 from skaha.client import SkahaClient
 from skaha.exceptions import ParameterError
+from skaha.utils import logs
+
+log = logs.get_logger(__name__)
 
 
 @attrs
@@ -20,7 +23,7 @@ class Session(SkahaClient):
         kind: Optional[str] = None,
         status: Optional[str] = None,
         view: Optional[str] = None,
-    ) -> dict:
+    ) -> list:
         """List open sessions for the user.
 
         Args:
@@ -32,54 +35,76 @@ class Session(SkahaClient):
             ParameterError: When `kind`, `status` or `view` are malformed.
 
         Returns:
-            dict: Session information.
+            list: Sessions information.
 
         """
-        try:
-            params: dict = {}
-            if kind:
-                assert kind in ["desktop", "notebook", "carta", "headless"]
-                params["type"] = kind
-            if status:
-                assert status in [
+        params: dict = {}
+        if kind:
+            params["type"] = self.check(
+                kind, ["desktop", "notebook", "carta", "headless"]
+            )
+        if status:
+            params["status"] = self.check(
+                status,
+                [
                     "Pending",
                     "Running",
                     "Terminating",
                     "Succeeded",
                     "Error",
-                ]
-                params["status"] = status
-            if view:
-                assert view in ["all"]
-                params["view"] = view
-        except Exception as error:
-            ParameterError(error)
+                ],
+            )
+        if view:
+            params["view"] = self.check(view, ["all"])
+        log.debug(params)
         response = self.get(url=self.server, params=params)
         return response.json()
 
-    def info(self, session_id: str) -> dict:
+    def check(self, parameter: Any, values: list) -> Any:
+        """Check parameter.
+
+        Args:
+            parameter (str): Parameter to check.
+            values (list): Valid values.
+
+        Raises:
+            ParameterError: When parameter is malformed.
+
+        Returns:
+            Any: Parameter.
+
+        """
+        try:
+            assert parameter in values, f"invalid param: {parameter}"
+            return parameter
+        except AssertionError as e:
+            raise ParameterError(e)
+
+    def info(self, session_id: str) -> str:
         """Get session information.
 
         Args:
             session_id (str): Session ID.
 
         Returns:
-            dict: Session information.
+            str: Session information.
 
         """
-        return {}
+        params = {"view": "event"}
+        return self.get(url=self.server + "/" + session_id, params=params).text
 
-    def logs(self, session_id: str) -> dict:
+    def logs(self, session_id: str) -> str:
         """Get session logs.
 
         Args:
             session_id (str): Session ID.
 
         Returns:
-            dict: Session logs.
+            str: Session logs.
 
         """
-        return {}
+        params = {"view": "logs"}
+        return self.get(url=self.server + "/" + session_id, params=params).text
 
     def create(
         self,
@@ -91,7 +116,7 @@ class Session(SkahaClient):
         cmd: Optional[str] = None,
         args: Optional[str] = None,
         env: Optional[dict] = None,
-    ):
+    ) -> str:
         """Launch a new session.
 
         Args:
@@ -107,22 +132,52 @@ class Session(SkahaClient):
             env (dict, optional): Environment variables. Defaults to None.
 
         Raises:
-            ParameterError: When `kind` is malformed.
+            ParameterError: When a platform is malformed.
 
         Returns:
-            dict: Session information.
+            str: Session ID.
 
         """
-        pass
+        data: dict = {"name": name, "image": image, "cores": cores, "ram": ram}
+        params: dict = {}
+        if kind:
+            params["type"] = self.check(
+                kind, ["desktop", "notebook", "carta", "headless"]
+            )
+        if cmd:
+            self.check(kind, ["headless"])
+            params["cmd"] = cmd
+        if args:
+            self.check(kind, ["headless"])
+            params["args"] = args
+        if env:
+            self.check(kind, ["headless"])
+            params["env"] = env
+        log.info(params)
+        return self.post(url=self.server, data=data, params=params).text.rstrip("\r\n")
 
-    def destroy(self, session_id: str):
+    def destroy(self, session_id: str) -> bool:
         """Destroy a session.
 
         Args:
             session_id (str): Session ID.
 
         Returns:
-            dict: Session information.
+            bool: True if the session was destroyed.
 
         """
-        pass
+        response = self.delete(url=self.server + "/" + session_id)
+        if response.status_code == 200:
+            return True
+        else:
+            return False
+
+    def app(self, session_id: str, image: str):
+        """Attach a desktop-app to the session identified by sessionID.
+
+        Args:
+            session_id (str): Skaha session ID.
+            image (str): The desktop-app to attach
+
+        """
+        raise NotImplementedError()

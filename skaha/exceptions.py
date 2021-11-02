@@ -1,70 +1,60 @@
 """Skaha Exceptions."""
 
 
+# API Errors from HTTP Status Codes
 class APIError(Exception):
     """Errors raised as a result of HTTP Status Codes."""
 
     pass
 
 
-# Authentication Errors
-class AuthenticationError(APIError):
-    """Authentication Error."""
+class NotAuthenticated(APIError):
+    """Not Authenticated."""
 
     pass
 
 
-class InvalidCertificateError(AuthenticationError):
-    """Invalid Certificate Error."""
+class PermissionDeniedError(APIError):
+    """Permission Denied."""
 
     pass
 
 
-class InvalidTokenError(AuthenticationError):
-    """Invalid Token Error."""
+class InternalError(APIError):
+    """Internal Server Error."""
 
     pass
 
 
-class InvalidServerURL(APIError):
-    """Invalid Server URL."""
+class ServiceBusyError(APIError):
+    """Service Busy."""
 
     pass
 
 
-# Connection Errors
 class ConnectionError(APIError):
     """Connection Error."""
 
     pass
 
 
-class InvalidRequestError(APIError):
-    """Invalid Request Error."""
-
-    pass
-
-
-class InvalidResponseError(APIError):
-    """Invalid Response Error."""
-
-    pass
-
-
-class RateLimitError(APIError):
-    """Rate Limit Error."""
-
-    pass
-
-
-class ServiceUnavailableError(APIError):
-    """Service Unavailable Error."""
-
-    pass
+# Client Errors
 
 
 class ClientError(Exception):
-    """Internal Client Error."""
+    """Skaha Client Errors."""
+
+    pass
+
+
+class InvalidServerURL(ClientError):
+    """Invalid Server URL."""
+
+    pass
+
+
+class InvalidCertificateError(ClientError):
+    """Invalid Certificate."""
 
     pass
 

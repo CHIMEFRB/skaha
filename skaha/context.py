@@ -12,6 +12,6 @@ class Context(SkahaClient):
         """Initialize the context server URL."""
         self.server = self.server + "/context"
 
-    def fetch_resources(self) -> dict:
+    def resources(self) -> dict:
         """Get available resources from the skaha server."""
         return self.get(url=self.server).json()
