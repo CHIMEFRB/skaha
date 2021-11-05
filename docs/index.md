@@ -1,17 +1,27 @@
-# Welcome to MkDocs
+A lightweight python library the Skaha Container Science Platform at CANFAR.
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+!!! Installation
 
-## Commands
+    ```bash
+    pip install skaha
+    ```
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+!!! example
 
-## Project layout
+    ```python
+    from skaha.session import Session
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+    session = Session()
+    session.create(
+        name="test",
+        image="images.canfar.net/skaha/terminal:0.1",
+        cores=2,
+        ram=8,
+        kind="headless",
+        cmd="env",
+        env={"TEST": "test"},
+    )
+    ```
+
+[Get Started](client.md){: .md-button .md-button--primary } 
+[Go to GitHub :fontawesome-brands-github:](https://github.com/chimefrb/skaha){: .md-button .md-button--primary }
