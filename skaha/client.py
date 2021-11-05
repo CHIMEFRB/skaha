@@ -51,8 +51,7 @@ class SkahaClient(Session):
             raise InvalidCertificateError(f"{value} does not exist.")
         self.headers.update({"X-Skaha-Authentication-Type": "certificate"})
         self.cert = value
-        # Disable warnings for self signed certificates
-        self.verify = False
+        self.verify = True
 
     def __attrs_post_init__(self):
         """Post Intialization Attributes."""
