@@ -13,5 +13,18 @@ class Context(SkahaClient):
         self.server = self.server + "/context"
 
     def resources(self) -> dict:
-        """Get available resources from the skaha server."""
+        """Get available resources from the skaha server.
+
+        Returns:
+            A dictionary of available resources.
+
+        Examples:
+            >>> from skaha.context import Context
+                context = Context()
+                context.resources()
+            >>> {'defaultCores': 2,
+                 'defaultCoresHeadless': 1,
+                 ...}
+
+        """
         return self.get(url=self.server).json()

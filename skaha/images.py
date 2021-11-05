@@ -32,6 +32,14 @@ class Images(SkahaClient):
         Returns:
             list: A list of images on the skaha server.
 
+        Examples:
+            >>> from skaha.images import Images
+                images = Images()
+                images.fetch(kind="headless")
+            >>> ['images.canfar.net/chimefrb/baseband-polarization:latest',
+                ...
+                'images.canfar.net/skaha/terminal:0.1']
+
         """
         data: dict = {}
         if kind:

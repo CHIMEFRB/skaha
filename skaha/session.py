@@ -37,6 +37,11 @@ class Session(SkahaClient):
         Returns:
             list: Sessions information.
 
+        Examples:
+            >>> from skaha.session import Session
+                session = Session()
+                session.fetch(kind="desktop")
+
         """
         params: dict = {}
         if kind:
@@ -89,6 +94,9 @@ class Session(SkahaClient):
         Returns:
             str: Session information.
 
+        Examples:
+            >>> session.info(session_id="hjko98yghj")
+
         """
         params = {"view": "event"}
         return self.get(url=self.server + "/" + session_id, params=params).text
@@ -100,7 +108,10 @@ class Session(SkahaClient):
             session_id (str): Session ID.
 
         Returns:
-            str: Session logs.
+            str: Logs in text/plain format.
+
+        Examples:
+            >>> session.logs(session_id="hjko98yghj")
 
         """
         params = {"view": "logs"}
@@ -137,6 +148,18 @@ class Session(SkahaClient):
         Returns:
             str: Session ID.
 
+        Examples:
+            >>> session.create(
+                    name="test",
+                    image="images.canfar.net/skaha/terminal:0.1",
+                    cores=2,
+                    ram=8,
+                    kind="headless",
+                    cmd="env",
+                    env={"TEST": "test"}
+                )
+            >>> "hjko98yghj"
+
         """
         data: dict = {"name": name, "image": image, "cores": cores, "ram": ram}
         params: dict = {}
@@ -164,6 +187,9 @@ class Session(SkahaClient):
 
         Returns:
             bool: True if the session was destroyed.
+
+        Examples:
+            >>> session.destroy(session_id="hjko98yghj")
 
         """
         response = self.delete(url=self.server + "/" + session_id)

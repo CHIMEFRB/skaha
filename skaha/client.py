@@ -14,7 +14,7 @@ from skaha.exceptions import InvalidCertificateError, InvalidServerURL
 
 @attrs
 class SkahaClient(Session):
-    """Skaha Client.
+    """SkahaClient is the base class for all other API clients.
 
     Args:
         Session (requests.Session): Requests Session Object.
@@ -22,6 +22,11 @@ class SkahaClient(Session):
     Raises:
         InvalidServerURL: If the server URL is invalid.
         InvalidCertificateError: If the client is given an invalid certificate.
+
+    Examples:
+        >>> from skaha.client import SkahaClient
+            class MyClient(SkahaClient):
+                pass
 
     """
 
