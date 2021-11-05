@@ -12,5 +12,12 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - run: poetry install -E docs
-      - run: poetry run mkdocs gh-deploy --force
+      -
+        name: installing requirements
+        run: |
+          pip install poetry
+          poetry install -E docs
+      -
+        name: building docs
+        run: |
+          poetry run mkdocs gh-deploy --force
