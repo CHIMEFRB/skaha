@@ -1,10 +1,11 @@
 """Skaha Headless Session."""
-from typing import Any, Optional
+from typing import List
 
 from attr import attrs
+from beartype import beartype
 
 from skaha.client import SkahaClient
-from skaha.exceptions import ParameterError
+from skaha.typedef import ARG, CMD, CORE, ENV, ID, IMAGE, KIND, NAME, RAM, STATUS, VIEW
 from skaha.utils import logs
 
 log = logs.get_logger(__name__)
@@ -18,11 +19,12 @@ class Session(SkahaClient):
         """Modify the attributes of the SkahaClient class."""
         self.server = self.server + "/session"
 
+    @beartype
     def fetch(
         self,
-        kind: Optional[str] = None,
-        status: Optional[str] = None,
-        view: Optional[str] = None,
+        kind: KIND = None,
+        status: STATUS = None,
+        view: VIEW = None,
     ) -> list:
         """List open sessions for the user.
 
@@ -45,90 +47,62 @@ class Session(SkahaClient):
         """
         params: dict = {}
         if kind:
-            params["type"] = self.check(
-                kind, ["desktop", "notebook", "carta", "headless"]
-            )
+            params["type"] = kind
         if status:
-            params["status"] = self.check(
-                status,
-                [
-                    "Pending",
-                    "Running",
-                    "Terminating",
-                    "Succeeded",
-                    "Error",
-                ],
-            )
+            params["status"] = status
         if view:
-            params["view"] = self.check(view, ["all"])
+            params["view"] = view
         log.debug(params)
         response = self.get(url=self.server, params=params)
+        response.raise_for_status()
         return response.json()
 
-    def check(self, parameter: Any, values: list) -> Any:
-        """Check parameter.
+    def info(self, id: ID) -> str:
+        """Get information about a session.
 
         Args:
-            parameter (str): Parameter to check.
-            values (list): Valid values.
-
-        Raises:
-            ParameterError: When parameter is malformed.
-
-        Returns:
-            Any: Parameter.
-
-        """
-        try:
-            assert parameter in values, f"invalid param: {parameter}"
-            return parameter
-        except AssertionError as e:
-            raise ParameterError(e)
-
-    def info(self, session_id: str) -> str:
-        """Get session information.
-
-        Args:
-            session_id (str): Session ID.
+            ids (str): Session ID.
 
         Returns:
             str: Session information.
 
         Examples:
-            >>> session.info(session_id="hjko98yghj")
+            >>> session.info(id="hjko98yghj")
 
         """
-        params = {"view": "event"}
-        return self.get(url=self.server + "/" + session_id, params=params).text
+        response = self.get(url=self.server + "/" + id, params={"view": "event"})
+        response.raise_for_status()
+        return response.text
 
-    def logs(self, session_id: str) -> str:
-        """Get session logs.
+    def logs(self, id: ID) -> List[str]:
+        """Get logs from a session.
 
         Args:
-            session_id (str): Session ID.
+            id (str): Session ID.
 
         Returns:
             str: Logs in text/plain format.
 
         Examples:
-            >>> session.logs(session_id="hjko98yghj")
+            >>> session.logs(id="hjko98yghj")
 
         """
-        params = {"view": "logs"}
-        return self.get(url=self.server + "/" + session_id, params=params).text
+        response = self.get(url=self.server + "/" + id, params={"view": "logs"})
+        response.raise_for_status()
+        return response.text.split("\n")
 
     def create(
         self,
-        name: str,
-        image: str,
-        cores: int = 1,
-        ram: int = 4,
-        kind: Optional[str] = None,
-        cmd: Optional[str] = None,
-        args: Optional[str] = None,
-        env: Optional[dict] = None,
+        name: NAME,
+        image: IMAGE,
+        cores: CORE = 1,
+        ram: RAM = 4,
+        kind: KIND = None,
+        cmd: CMD = None,
+        args: ARG = None,
+        env: ENV = None,
     ) -> str:
-        """Launch a new session.
+        """Launch a skaha session.
 
         Args:
             name (str): The name for the session.
@@ -141,9 +115,6 @@ class Session(SkahaClient):
             cmd (str, optional): Override the image entrypoint. Defaults to None.
             args (str, optional): Override the image CMD params. Defaults to None.
             env (dict, optional): Environment variables. Defaults to None.
-
-        Raises:
-            ParameterError: When a platform is malformed.
 
         Returns:
             str: Session ID.
@@ -164,39 +135,39 @@ class Session(SkahaClient):
         data: dict = {"name": name, "image": image, "cores": cores, "ram": ram}
         params: dict = {}
         if kind:
-            params["type"] = self.check(
-                kind, ["desktop", "notebook", "carta", "headless"]
-            )
-        if cmd:
-            self.check(kind, ["headless"])
-            params["cmd"] = cmd
-        if args:
-            self.check(kind, ["headless"])
-            params["args"] = args
-        if env:
-            self.check(kind, ["headless"])
-            params["env"] = env
+            params["type"] = kind
+        # Command, arguments and evironment variables are only supported for
+        # headless sessions.
+        if kind == "headless":
+            if cmd:
+                params["cmd"] = cmd
+            if args:
+                params["args"] = args
+            if env:
+                params["env"] = env
         log.info(params)
-        return self.post(url=self.server, data=data, params=params).text.rstrip("\r\n")
+        response = self.post(url=self.server, data=data, params=params)
+        response.raise_for_status()
+        return response.text.rstrip("\r\n")
 
-    def destroy(self, session_id: str) -> bool:
-        """Destroy a session.
+    def destroy(self, id: str) -> bool:
+        """Destroy a skaha session.
 
         Args:
-            session_id (str): Session ID.
+            id: (str): Session ID.
 
         Returns:
             bool: True if the session was destroyed.
 
         Examples:
-            >>> session.destroy(session_id="hjko98yghj")
+            >>> session.destroy(id="hjko98yghj")
 
         """
-        response = self.delete(url=self.server + "/" + session_id)
+        response = self.delete(url=self.server + "/" + id)
+        response.raise_for_status()
         if response.status_code == 200:
             return True
-        else:
-            return False
+        return False
 
     def app(self, session_id: str, image: str):
         """Attach a desktop-app to the session identified by sessionID.

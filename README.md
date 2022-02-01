@@ -11,6 +11,7 @@ pip install skaha
 
 ```python
 from skaha.session import Session
+
 session = Session()
 
 # Create a session

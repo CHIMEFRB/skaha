@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "skaha"
-version = "0.3.0"
+version = "0.4.0"
 description = "Python Client for Skaha Container Platform in CANFAR"
 authors = ["Shiny Brar <charanjotbrar@gmail.com>"]
 license = "MIT"
@@ -14,11 +14,13 @@ validators = "^0.18.2"
 toml = "^0.10.2"
 mkdocs-material = {version = "^7.3.6", optional = true}
 mkdocstrings = {version = "^0.16.2", optional = true}
+beartype = "^0.9.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
 black = "^21.9b0"
 pre-commit = "^2.15.0"
+pytest-cov = "^3.0.0"
 
 [tool.poetry.extras]
 docs = ["mkdocs-material", "mkdocstrings"]
