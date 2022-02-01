@@ -20,6 +20,7 @@ beartype = "^0.9.1"
 pytest = "^6.2.5"
 black = "^21.9b0"
 pre-commit = "^2.15.0"
+pytest-cov = "^3.0.0"
 
 [tool.poetry.extras]
 docs = ["mkdocs-material", "mkdocstrings"]
