@@ -9,7 +9,7 @@ async def scale(
     function: Callable,
     arguments: List[dict] = [{}],
 ) -> list:
-    """Scales a function across multiple threads.
+    """Scales a function across multiple arguments.
 
     Args:
         function (Callable): The function to be scaled.
@@ -18,6 +18,12 @@ async def scale(
 
     Returns:
         list: The results of the function.
+
+    Examples:
+        >>> from skaha.threaded import scale
+            from asyncio import get_event_loop
+            loop = get_event_loop()
+            loop.run_until_complete(scale(lambda x: x**2, [{'x': i} for i in range(10)]))
 
     """
     workers = len(arguments)

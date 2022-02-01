@@ -11,11 +11,11 @@ BASE_PATH: Path = Path(__file__).absolute().parent.parent
 
 try:
     __version__ = get_distribution("skaha").version
-except DistributionNotFound as e:
-    log.warning(e)
+except DistributionNotFound as error:
+    log.warning(error)
     pyproject = toml.load(BASE_PATH / "pyproject.toml")
     __version__ = pyproject["tool"]["poetry"]["version"]
-except Exception as e:
-    log.warning(e)
-    log.warning("unable to determine skaha client version")
+except Exception as error:
+    log.warning(error)
+    log.warning("unable to find skaha client version")
     __version__ = "unknown"
