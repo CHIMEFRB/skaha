@@ -1,4 +1,6 @@
 """Skaha Headless Session."""
+from typing import List
+
 from attr import attrs
 from beartype import beartype
 
@@ -72,7 +74,7 @@ class Session(SkahaClient):
         response.raise_for_status()
         return response.text
 
-    def logs(self, id: ID) -> list[str]:
+    def logs(self, id: ID) -> List[str]:
         """Get logs from a session.
 
         Args:
