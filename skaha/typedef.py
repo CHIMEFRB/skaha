@@ -1,3 +1,4 @@
+"""Type Definitions for Skaha."""
 from typing import Any, Dict, List, Optional
 
 from beartype.vale import Is

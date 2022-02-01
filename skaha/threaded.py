@@ -2,22 +2,22 @@
 import asyncio
 import concurrent.futures
 from functools import partial
-from typing import Callable, List
+from typing import Any, Callable, Dict, List
 
 
 async def scale(
     function: Callable,
-    arguments: List[dict] = [{}],
-) -> list:
+    arguments: List[Dict[Any, Any]] = [{}],
+) -> List:
     """Scales a function across multiple arguments.
 
     Args:
         function (Callable): The function to be scaled.
-        arguments (List[dict], optional): The arguments to be passed to each
+        arguments (List[Dict[Any, Any]], optional): The arguments to be passed to each
             function, by default [{}]
 
     Returns:
-        list: The results of the function.
+        List: The results of the function.
 
     Examples:
         >>> from skaha.threaded import scale
