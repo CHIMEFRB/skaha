@@ -1,7 +1,7 @@
 """Skaha Headless Session."""
 from typing import List
 
-from attr import attrs
+from pydantic import root_validator
 from beartype import beartype
 
 from skaha.client import SkahaClient
@@ -11,13 +11,14 @@ from skaha.utils import logs
 log = logs.get_logger(__name__)
 
 
-@attrs
 class Session(SkahaClient):
     """Skaha Session Client."""
 
-    def __attrs_post_init__(self):
-        """Modify the attributes of the SkahaClient class."""
-        self.server = self.server + "/session"
+    @root_validator
+    def set_server(cls, values):
+        """Sets the server path after validation"""
+        values["server"] = values["server"] + "/session"
+        return values
 
     @beartype
     def fetch(
@@ -53,7 +54,7 @@ class Session(SkahaClient):
         if view:
             params["view"] = view
         log.debug(params)
-        response = self.get(url=self.server, params=params)
+        response = self.session.get(url=self.server, params=params)
         response.raise_for_status()
         return response.json()
 
@@ -70,7 +71,7 @@ class Session(SkahaClient):
             >>> session.info(id="hjko98yghj")
 
         """
-        response = self.get(url=self.server + "/" + id, params={"view": "event"})
+        response = self.session.get(url=self.server + "/" + id, params={"view": "event"})
         response.raise_for_status()
         return response.text
 
@@ -87,7 +88,7 @@ class Session(SkahaClient):
             >>> session.logs(id="hjko98yghj")
 
         """
-        response = self.get(url=self.server + "/" + id, params={"view": "logs"})
+        response = self.session.get(url=self.server + "/" + id, params={"view": "logs"})
         response.raise_for_status()
         return response.text.split("\n")
 

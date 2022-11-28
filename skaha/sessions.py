@@ -2,7 +2,7 @@
 from asyncio import get_event_loop
 from typing import Any, Dict, List
 
-from attr import attrs
+from pydantic import root_validator
 from beartype import beartype
 
 from skaha.client import SkahaClient
@@ -27,13 +27,14 @@ from skaha.utils import logs
 log = logs.get_logger(__name__)
 
 
-@attrs
 class Sessions(SkahaClient):
     """Skaha Client for multiple sessions."""
 
-    def __attrs_post_init__(self):
-        """Modify the attributes of the SkahaClient class."""
-        self.server = self.server + "/session"
+    @root_validator
+    def set_server(cls, values):
+        """Sets the server path after validation"""
+        values["server"] = values["server"] + "/session"
+        return values
 
     @beartype
     def fetch(
@@ -69,7 +70,7 @@ class Sessions(SkahaClient):
         if view:
             params["view"] = view
         log.debug(params)
-        response = self.get(url=self.server, params=params)
+        response = self.session.get(url=self.server, params=params)
         response.raise_for_status()
         return response.json()
 
@@ -93,7 +94,7 @@ class Sessions(SkahaClient):
             )
 
         loop = get_event_loop()
-        responses = loop.run_until_complete(scale(self.get, arguments))
+        responses = loop.run_until_complete(scale(self.session.get, arguments))
         results: Dict[str, Any] = {}
         for index, response in enumerate(responses):
             results[ids[index]] = response.text
@@ -118,7 +119,7 @@ class Sessions(SkahaClient):
                 {"url": self.server + "/" + id, "params": {"view": "logs"}}
             )
         loop = get_event_loop()
-        responses = loop.run_until_complete(scale(self.get, arguments))
+        responses = loop.run_until_complete(scale(self.session.get, arguments))
         results: Dict[str, Any] = {}
         for index, response in enumerate(responses):
             results[ids[index]] = response.text.split("\n")

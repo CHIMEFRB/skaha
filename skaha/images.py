@@ -1,7 +1,7 @@
 """Skaha Image Management."""
 from typing import Optional
 
-from attr import attrs
+from pydantic import root_validator
 
 from skaha.client import SkahaClient
 from skaha.utils.logs import get_logger
@@ -9,7 +9,6 @@ from skaha.utils.logs import get_logger
 log = get_logger(__name__)
 
 
-@attrs
 class Images(SkahaClient):
     """Skaha Image Management.
 
@@ -18,9 +17,11 @@ class Images(SkahaClient):
 
     """
 
-    def __attrs_post_init__(self):
-        """Modify the attributes of the SkahaClient class."""
-        self.server = self.server + "/image"
+    @root_validator
+    def set_server(cls, values):
+        """Sets the server path after validation"""
+        values["server"] = values["server"] + "/image"
+        return values
 
     def fetch(self, kind: Optional[str] = None, prune: bool = True) -> list:
         """Get images from Skaha Server.
@@ -44,7 +45,7 @@ class Images(SkahaClient):
         data: dict = {}
         if kind:
             data["type"] = kind
-        response = self.get(url=self.server, params=data).json()
+        response = self.session.get(url=self.server, params=data).json()
         if prune:
             for index, image in enumerate(response):
                 response[index] = image["id"]

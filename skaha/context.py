@@ -1,16 +1,17 @@
 """Get available resources from the skaha server."""
-from attr import attrs
 
+from pydantic import root_validator
 from skaha.client import SkahaClient
 
 
-@attrs
 class Context(SkahaClient):
     """Get available resources from the skaha server."""
 
-    def __attrs_post_init__(self):
-        """Initialize the context server URL."""
-        self.server = self.server + "/context"
+    @root_validator
+    def set_server(cls, values):
+        """Sets the server path after validation"""
+        values["server"] = values["server"] + "/context"
+        return values
 
     def resources(self) -> dict:
         """Get available resources from the skaha server.
@@ -27,4 +28,4 @@ class Context(SkahaClient):
                  ...}
 
         """
-        return self.get(url=self.server).json()
+        return self.session.get(url=self.server).json()
