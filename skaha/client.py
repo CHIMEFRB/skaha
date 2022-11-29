@@ -3,6 +3,7 @@ from os import environ
 from pathlib import Path
 from platform import machine, platform, python_version, release, system
 from time import asctime, gmtime
+from typing import Dict, Any
 
 from requests import Session
 from typing import Optional, Type
@@ -52,7 +53,7 @@ class SkahaClient(BaseModel):
     verify: Optional[bool] = Field(default=False)
 
     @validator("server", pre=True, always=True)
-    def server_has_valid_url(cls, value):
+    def server_has_valid_url(cls, value: str):
         """Check if server is a valid url."""
         error = None
         try:
@@ -64,7 +65,7 @@ class SkahaClient(BaseModel):
         return value
 
     @validator("certificate", pre=True, always=True)
-    def certificate_exists_and_is_readable(cls, value):
+    def certificate_exists_and_is_readable(cls, value: str):
         """Check the certificate."""
         error = None
         try:
@@ -78,7 +79,7 @@ class SkahaClient(BaseModel):
         return value
 
     @root_validator(skip_on_failure=True)
-    def session_set_headers(cls, values):
+    def session_set_headers(cls, values: Dict[str, Any]):
         """Set headers to session object after all values has been obtained."""
         values["session"].headers.update({"X-Skaha-Server": values["server"]})
         values["session"].headers.update({"Content-Type": "application/json"})
@@ -96,9 +97,11 @@ class SkahaClient(BaseModel):
         return values
 
     @root_validator(skip_on_failure=True)
-    def assign_cert_values(cls, values):
+    def assign_cert_values(cls, values: Dict[str, Any]):
         """Check the certificate."""
         values["session"].headers.update({"X-Skaha-Authentication-Type": "certificate"})
-        values["cert"] = values["certificate"]
+        values["cert"] = str(values["certificate"])
         values["verify"] = True
+        values["session"].cert = values["cert"]
+        values["session"].verify = values["verify"]
         return values

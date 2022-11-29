@@ -1,5 +1,5 @@
 """Skaha Headless Session."""
-from typing import List
+from typing import List, Dict, Any
 
 from pydantic import root_validator
 from beartype import beartype
@@ -15,7 +15,7 @@ class Session(SkahaClient):
     """Skaha Session Client."""
 
     @root_validator
-    def set_server(cls, values):
+    def set_server(cls, values: Dict[str, Any]):
         """Sets the server path after validation"""
         values["server"] = values["server"] + "/session"
         return values
@@ -147,7 +147,7 @@ class Session(SkahaClient):
             if env:
                 params["env"] = env
         log.info(params)
-        response = self.post(url=self.server, data=data, params=params)
+        response = self.session.post(url=self.server, data=data, params=params)
         response.raise_for_status()
         return response.text.rstrip("\r\n")
 
@@ -164,7 +164,7 @@ class Session(SkahaClient):
             >>> session.destroy(id="hjko98yghj")
 
         """
-        response = self.delete(url=self.server + "/" + id)
+        response = self.session.delete(url=self.server + "/" + id)
         response.raise_for_status()
         if response.status_code == 200:
             return True
