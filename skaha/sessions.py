@@ -31,7 +31,7 @@ class Sessions(SkahaClient):
     """Skaha Client for multiple sessions."""
 
     @root_validator
-    def set_server(cls, values):
+    def set_server(cls, values: Dict[str, Any]):
         """Sets the server path after validation"""
         values["server"] = values["server"] + "/session"
         return values
@@ -195,7 +195,7 @@ class Sessions(SkahaClient):
             ) from error
 
         loop = get_event_loop()
-        responses = loop.run_until_complete(scale(self.post, arguments))
+        responses = loop.run_until_complete(scale(self.session.post, arguments))
         return [response.text.rstrip("\r\n") for response in responses]
 
     def destroy(self, ids: IDS) -> Dict[str, bool]:
@@ -215,7 +215,7 @@ class Sessions(SkahaClient):
         for id in ids:
             arguments.append({"url": self.server + "/" + id})
         loop = get_event_loop()
-        responses = loop.run_until_complete(scale(self.delete, arguments))
+        responses = loop.run_until_complete(scale(self.session.delete, arguments))
         results: Dict[str, Any] = {}
         for index, response in enumerate(responses):
             results[ids[index]] = response.status_code == 200

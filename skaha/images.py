@@ -1,5 +1,5 @@
 """Skaha Image Management."""
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from pydantic import root_validator
 
@@ -18,7 +18,7 @@ class Images(SkahaClient):
     """
 
     @root_validator
-    def set_server(cls, values):
+    def set_server(cls, values: Dict[str, Any]):
         """Sets the server path after validation"""
         values["server"] = values["server"] + "/image"
         return values
