@@ -6,9 +6,9 @@ from typing import Any, Callable, Dict, List
 
 
 async def scale(
-    function: Callable,
+    function: Callable[[Any, Any], Any],
     arguments: List[Dict[Any, Any]] = [{}],
-) -> List:
+) -> List[Any]:
     """Scales a function across multiple arguments.
 
     Args:
@@ -24,7 +24,6 @@ async def scale(
             from asyncio import get_event_loop
             loop = get_event_loop()
             loop.run_until_complete(scale(lambda x: x**2, [{'x': i} for i in range(10)]))
-
     """
     workers = len(arguments)
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
