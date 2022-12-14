@@ -1,11 +1,14 @@
 """Skaha Headless Session."""
-from typing import List, Dict, Any
+from asyncio import get_event_loop
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import root_validator
-from beartype import beartype
+from requests.exceptions import HTTPError
+from requests.models import Response
 
 from skaha.client import SkahaClient
-from skaha.typedef import ARG, CMD, CORE, ENV, ID, IMAGE, KIND, NAME, RAM, STATUS, VIEW
+from skaha.models import CreateSpec
+from skaha.threaded import scale
 from skaha.utils import logs
 
 log = logs.get_logger(__name__)
@@ -16,17 +19,17 @@ class Session(SkahaClient):
 
     @root_validator
     def set_server(cls, values: Dict[str, Any]):
-        """Sets the server path after validation"""
+        """Sets the server path after validation."""
         values["server"] = values["server"] + "/session"
+        log.debug(f'Server set to {values["server"]}')
         return values
 
-    @beartype
     def fetch(
         self,
-        kind: KIND = None,
-        status: STATUS = None,
-        view: VIEW = None,
-    ) -> list:
+        kind: Optional[str] = None,
+        status: Optional[str] = None,
+        view: Optional[str] = None,
+    ) -> List[Dict[str, str]]:
         """List open sessions for the user.
 
         Args:
@@ -34,148 +37,230 @@ class Session(SkahaClient):
             status (str, optional): Session status. Defaults to None.
             view (str, optional): Session view level. Defaults to None.
 
-        Raises:
-            ParameterError: When `kind`, `status` or `view` are malformed.
+        Notes:
+            By default, only the calling user's sessions are listed. If views is
+            set to 'all', all user sessions are listed (with limited information).
 
         Returns:
             list: Sessions information.
 
         Examples:
             >>> from skaha.session import Session
-                session = Session()
-                session.fetch(kind="desktop")
-
+            >>> session = Session()
+            >>> session.fetch(kind="notebook")
+            [{'id': 'ikvp1jtp',
+              'userid': 'username',
+              'image': 'images.canfar.net/image/label:latest',
+              'type': 'notebook',
+              'status': 'Running',
+              'name': 'example-notebook',
+              'startTime': '2222-12-14T02:24:06Z',
+              'connectURL': 'https://skaha.example.com/ikvp1jtp',
+              'requestedRAM': '16G',
+              'requestedCPUCores': '2',
+              'requestedGPUCores': '<none>',
+              'coresInUse': '0m',
+              'ramInUse': '101Mi'}]
+            >>> session.fetch(kind="desktop", view="all")
+            [{'userid': 'bmajor',
+              'type': 'desktop',
+              'status': 'Running',
+              'startTime': '2222-12-07T05:45:58Z'},
+              ...]
         """
-        params: dict = {}
-        if kind:
-            params["type"] = kind
-        if status:
-            params["status"] = status
-        if view:
-            params["view"] = view
-        log.debug(params)
-        response = self.session.get(url=self.server, params=params)
+        parameters = {"type": kind, "status": status, "view": view}
+        log.debug(parameters)
+        response: Response = self.session.get(url=self.server, params=parameters)  # type: ignore # noqa: E501
         response.raise_for_status()
         return response.json()
 
-    def info(self, id: ID) -> str:
-        """Get information about a session.
-
-        Args:
-            ids (str): Session ID.
+    def stats(self) -> Dict[str, Any]:
+        """Get statistics for the entire skaha cluster.
 
         Returns:
-            str: Session information.
+            Dict[str, Any]: Cluster statistics.
 
         Examples:
-            >>> session.info(id="hjko98yghj")
-
+            >>> from skaha.session import Session
+            >>> session = Session()
+            >>> session.stats()
+            {'instances': {'session': 88, 'desktopApp': 30, 'headless': 0, 'total': 118},
+             'cores': {'requestedCPUCores': 377,
+             'coresAvailable': 960,
+             'maxCores': {'cores': 32, 'withRam': '147Gi'}},
+             'ram': {'maxRAM': {'ram': '226Gi', 'withCores': 32}}}
         """
-        response = self.session.get(url=self.server + "/" + id, params={"view": "event"})
+        parameters = {"view": "stats"}
+        log.debug(parameters)
+        response: Response = self.session.get(url=self.server, params=parameters)  # type: ignore # noqa: E501
         response.raise_for_status()
-        return response.text
+        return response.json()
 
-    def logs(self, id: ID) -> List[str]:
-        """Get logs from a session.
+    def info(self, id: Union[List[str], str]) -> List[Dict[str, Any]]:
+        """Get information about session[s].
 
         Args:
-            id (str): Session ID.
+            session_id (Union[List[str], str]): Session ID[s].
 
         Returns:
-            str: Logs in text/plain format.
+            Dict[str, Any]: Session information.
+
+        Examples:
+            >>> session.info(session_id="hjko98yghj")
+            >>> session.info(id=["hjko98yghj", "ikvp1jtp"])
+        """
+        # Convert id to list if it is a string
+        if isinstance(id, str):
+            id = [id]
+        parameters: Dict[str, str] = {"view": "event"}
+        arguments: List[Any] = []
+        for value in id:
+            arguments.append({"url": self.server + "/" + value, "params": parameters})
+        loop = get_event_loop()
+        results = loop.run_until_complete(scale(self.session.get, arguments))
+        responses: List[Dict[str, Any]] = []
+        for response in results:
+            try:
+                response.raise_for_status()
+                responses.append(response.json())
+            except HTTPError as err:
+                log.error(err)
+        return responses
+
+    def logs(self, id: Union[List[str], str]) -> Dict[str, str]:
+        """Get logs from a session[s].
+
+        Args:
+            id (Union[List[str], str]): Session ID[s].
+
+        Returns:
+            Dict[str, str]: Logs in text/plain format.
 
         Examples:
             >>> session.logs(id="hjko98yghj")
-
+            >>> session.logs(id=["hjko98yghj", "ikvp1jtp"])
         """
-        response = self.session.get(url=self.server + "/" + id, params={"view": "logs"})
-        response.raise_for_status()
-        return response.text.split("\n")
+        if isinstance(id, str):
+            id = [id]
+        parameters: Dict[str, str] = {"view": "logs"}
+        arguments: List[Any] = []
+        for value in id:
+            arguments.append({"url": self.server + "/" + value, "params": parameters})
+        loop = get_event_loop()
+        results = loop.run_until_complete(scale(self.session.get, arguments))
+        responses: Dict[str, str] = {}
+        for index, identity in enumerate(id):
+            responses[identity] = ""
+            try:
+                results[index].raise_for_status()
+                responses[identity] = results[index].text
+            except HTTPError as err:
+                log.error(err)
+        return responses
 
     def create(
         self,
-        name: NAME,
-        image: IMAGE,
-        cores: CORE = 1,
-        ram: RAM = 4,
-        kind: KIND = None,
-        cmd: CMD = None,
-        args: ARG = None,
-        env: ENV = None,
-    ) -> str:
+        name: str,
+        image: str,
+        cores: int = 2,
+        ram: int = 4,
+        kind: str = "headless",
+        gpu: Optional[int] = None,
+        cmd: Optional[str] = None,
+        args: Optional[str] = None,
+        env: Optional[Dict[str, Any]] = None,
+        replicas: int = 1,
+    ) -> List[str]:
         """Launch a skaha session.
 
         Args:
-            name (str): The name for the session.
-            image (str): The Image ID of the session.
-                e.g. images.canfar.net/skaha/notebook-scipy:0.2
-            cores (int, optional): Number of cores. Defaults to 1.
-            ram (int, optional): Amount of RAM. Defaults to 4.
-            kind (str, optional): Session kind for images not from harbor registries.
+            name (str): A unique name for the session.
+            image (str): Container image to use for the session.
+            cores (int, optional): Number of cores. Defaults to 2.
+            ram (int, optional): Amount of RAM (GB). Defaults to 4.
+            kind (str, optional): Type of skaha session. Defaults to "headless".
+            cmd (Optional[str], optional): Command to run. Defaults to None.
+            args (Optional[str], optional): Arguments to the command. Defaults to None.
+            env (Optional[Dict[str, Any]], optional): Environment variables to inject.
                 Defaults to None.
-            cmd (str, optional): Override the image entrypoint. Defaults to None.
-            args (str, optional): Override the image CMD params. Defaults to None.
-            env (dict, optional): Environment variables. Defaults to None.
+            replicas (int, optional): Number of sessions to launch. Defaults to 1.
+
+        Notes:
+            When replicas is greater than 1, the name of the session suffixed with
+            a number. eg. test-1, test-2, test-3
 
         Returns:
-            str: Session ID.
+            List[str]: A list of session IDs for the launched sessions.
 
         Examples:
             >>> session.create(
                     name="test",
-                    image="images.canfar.net/skaha/terminal:0.1",
+                    image='images.canfar.net/skaha/terminal:1.1.1',
                     cores=2,
                     ram=8,
                     kind="headless",
                     cmd="env",
-                    env={"TEST": "test"}
+                    env={"TEST": "test"},
+                    replicas=2,
                 )
-            >>> "hjko98yghj"
-
+            >>> ["hjko98yghj", "ikvp1jtp"]
         """
-        data: dict = {"name": name, "image": image, "cores": cores, "ram": ram}
-        params: dict = {}
-        if kind:
-            params["type"] = kind
-        # Command, arguments and evironment variables are only supported for
-        # headless sessions.
-        if kind == "headless":
-            if cmd:
-                params["cmd"] = cmd
-            if args:
-                params["args"] = args
-            if env:
-                params["env"] = env
-        log.info(params)
-        response = self.session.post(url=self.server, data=data, params=params)
-        response.raise_for_status()
-        return response.text.rstrip("\r\n")
+        data: Dict[str, Any] = CreateSpec(
+            name=name,
+            image=image,
+            cores=cores,
+            ram=ram,
+            kind=kind,
+            gpu=gpu,
+            cmd=cmd,
+            args=args,
+            env=env,
+            replicas=replicas,
+        ).dict(exclude_none=True)
+        log.info(f"Creating {replicas} session(s) with parameters:")
+        log.info(data)
+        arguments: List[Any] = []
+        for _ in range(replicas):
+            data["name"] = name + "-" + str(_ + 1)
+            arguments.append({"url": self.server, "data": data})
+        loop = get_event_loop()
+        results = loop.run_until_complete(scale(self.session.post, arguments))
+        responses: List[str] = []
+        for response in results:
+            try:
+                response.raise_for_status()
+                responses.append(response.text.rstrip("\r\n"))
+            except HTTPError as err:
+                log.error(err)
+        return responses
 
-    def destroy(self, id: str) -> bool:
-        """Destroy a skaha session.
+    def destroy(self, id: Union[str, List[str]]) -> Dict[str, bool]:
+        """Destroy skaha session[s].
 
         Args:
-            id: (str): Session ID.
+            id (Union[str, List[str]]): Session ID[s].
 
         Returns:
-            bool: True if the session was destroyed.
+            Dict[str, bool]: A dictionary of session IDs
+            and a bool indicating if the session was destroyed.
 
         Examples:
             >>> session.destroy(id="hjko98yghj")
-
+            >>> session.destroy(id=["hjko98yghj", "ikvp1jtp"])
         """
-        response = self.session.delete(url=self.server + "/" + id)
-        response.raise_for_status()
-        if response.status_code == 200:
-            return True
-        return False
-
-    def app(self, session_id: str, image: str):
-        """Attach a desktop-app to the session identified by sessionID.
-
-        Args:
-            session_id (str): Skaha session ID.
-            image (str): The desktop-app to attach
-
-        """
-        raise NotImplementedError()
+        if isinstance(id, str):
+            id = [id]
+        arguments: List[Any] = []
+        for value in id:
+            arguments.append({"url": self.server + "/" + value})
+        loop = get_event_loop()
+        results = loop.run_until_complete(scale(self.session.delete, arguments))
+        responses: Dict[str, bool] = {}
+        for index, identity in enumerate(id):
+            try:
+                results[index].raise_for_status()
+                responses[identity] = True
+            except HTTPError as err:
+                log.error(err)
+                responses[identity] = False
+        return responses

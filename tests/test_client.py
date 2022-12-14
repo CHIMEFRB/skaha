@@ -2,21 +2,21 @@
 
 import pytest
 import requests
+from pydantic import ValidationError
 
-from pydantic import BaseModel, ValidationError
 from skaha.client import SkahaClient
 from skaha.exceptions import InvalidCertificateError, InvalidServerURL
 
 
 def test_client_has_session_attribute():
-    """Test if it SkahaClient object contains requests.Session attribute"""
+    """Test if it SkahaClient object contains requests.Session attribute."""
     client = SkahaClient()
     assert hasattr(client, "session")
     assert isinstance(client.session, requests.Session)
 
 
 def test_client_session():
-    """Test SkahaClient object's session attribute contains ther right headers"""
+    """Test SkahaClient object's session attribute contains ther right headers."""
     headers = [
         "X-Skaha-Server",
         "Content-Type",
@@ -64,4 +64,4 @@ def test_bad_certificate():
 def test_bad_certificate_path():
     """Test bad certificate."""
     with pytest.raises(InvalidCertificateError):
-        SkahaClient(certificate="/tmp/abcdefd")
+        SkahaClient(certificate="/tmp/does/not/exist.pem")  # nosec: B108
