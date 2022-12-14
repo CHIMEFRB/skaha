@@ -1,25 +1,29 @@
 """Skaha Client."""
+import logging
 from os import environ
-from pathlib import Path
 from platform import machine, platform, python_version, release, system
 from time import asctime, gmtime
-from typing import Dict, Any
+from typing import Any, Dict, Type
 
-from requests import Session
-from typing import Optional, Type
 from pydantic import (
+    AnyHttpUrl,
     BaseModel,
     Field,
-    validator,
-    root_validator,
-    AnyHttpUrl,
     FilePath,
     ValidationError,
+    root_validator,
+    validator,
 )
 from pydantic.tools import parse_obj_as
+from requests import Session
 
 from skaha import __version__
 from skaha.exceptions import InvalidCertificateError, InvalidServerURL
+
+# Setup logging format
+logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
+# Get the logger
+log = logging.getLogger(__name__)
 
 
 class SkahaClient(BaseModel):
@@ -49,32 +53,28 @@ class SkahaClient(BaseModel):
     )
     timeout: int = Field(default=15, title="Timeout")
     session: Type[Session] = Field(default=Session())
-    cert: Optional[str] = Field(default="")
-    verify: Optional[bool] = Field(default=False)
+    cert: str = Field(default="")
+    verify: bool = Field(default=True)
 
     @validator("server", pre=True, always=True)
     def server_has_valid_url(cls, value: str):
         """Check if server is a valid url."""
-        error = None
         try:
             value = parse_obj_as(AnyHttpUrl, value)
-        except ValidationError as e:
-            error = e
-        if error:
-            raise InvalidServerURL(f"Server must be a valid URL.")
+        except ValidationError as error:
+            log.error(error)
+            raise InvalidServerURL("invalid server url")
         return value
 
     @validator("certificate", pre=True, always=True)
     def certificate_exists_and_is_readable(cls, value: str):
         """Check the certificate."""
-        error = None
         try:
-            value = parse_obj_as(FilePath, value)
-        except ValidationError as e:
-            error = e
-        if error:
+            value = parse_obj_as(FilePath, value)  # type: ignore
+        except ValidationError as error:
+            log.error(error)
             raise InvalidCertificateError(
-                f"Certificate an absolute path and a readable file."
+                "certificate needs to be absolute path and readable"
             )
         return value
 
@@ -82,7 +82,9 @@ class SkahaClient(BaseModel):
     def session_set_headers(cls, values: Dict[str, Any]):
         """Set headers to session object after all values has been obtained."""
         values["session"].headers.update({"X-Skaha-Server": values["server"]})
-        values["session"].headers.update({"Content-Type": "application/json"})
+        values["session"].headers.update(
+            {"Content-Type": "application/x-www-form-urlencoded"}
+        )
         values["session"].headers.update({"Accept": "*/*"})
         values["session"].headers.update({"User-Agent": "skaha-client"})
         values["session"].headers.update({"Date": asctime(gmtime())})
