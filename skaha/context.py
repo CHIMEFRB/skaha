@@ -1,7 +1,10 @@
 """Get available resources from the skaha server."""
 
-from typing import Dict, Any
+from typing import Any, Dict
+
 from pydantic import root_validator
+from requests.models import Response
+
 from skaha.client import SkahaClient
 
 
@@ -10,11 +13,11 @@ class Context(SkahaClient):
 
     @root_validator
     def set_server(cls, values: Dict[str, Any]):
-        """Sets the server path after validation"""
+        """Sets the server path after validation."""
         values["server"] = values["server"] + "/context"
         return values
 
-    def resources(self) -> dict:
+    def resources(self) -> Dict[str, Any]:
         """Get available resources from the skaha server.
 
         Returns:
@@ -29,4 +32,6 @@ class Context(SkahaClient):
                  ...}
 
         """
-        return self.session.get(url=self.server).json()
+        response: Response = self.session.get(url=self.server)  # type: ignore
+        response.raise_for_status()
+        return response.json()
