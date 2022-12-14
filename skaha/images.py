@@ -1,7 +1,8 @@
 """Skaha Image Management."""
-from typing import Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 from pydantic import root_validator
+from requests.models import Response
 
 from skaha.client import SkahaClient
 from skaha.utils.logs import get_logger
@@ -19,11 +20,11 @@ class Images(SkahaClient):
 
     @root_validator
     def set_server(cls, values: Dict[str, Any]):
-        """Sets the server path after validation"""
+        """Sets the server path after validation."""
         values["server"] = values["server"] + "/image"
         return values
 
-    def fetch(self, kind: Optional[str] = None, prune: bool = True) -> list:
+    def fetch(self, kind: Optional[str] = None) -> List[str]:
         """Get images from Skaha Server.
 
         Args:
@@ -42,11 +43,14 @@ class Images(SkahaClient):
                 'images.canfar.net/skaha/terminal:0.1']
 
         """
-        data: dict = {}
+        data: Dict[str, str] = {}
+        # If kind is not None, add it to the data dictionary
         if kind:
             data["type"] = kind
-        response = self.session.get(url=self.server, params=data).json()
-        if prune:
-            for index, image in enumerate(response):
-                response[index] = image["id"]
-        return response
+        response: Response = self.session.get(url=self.server, params=data)  # type: ignore # noqa
+        response.raise_for_status()
+        response = response.json()
+        reply: List[str] = []
+        for image in response:
+            reply.append(image["id"])  # type: ignore
+        return reply
