@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, root_validator
 
 KINDS: List[str] = ["desktop", "notebook", "carta", "headless"]
 STATUS: List[str] = ["Pending", "Running", "Terminating", "Succeeded", "Error"]
-VIEWS: List[str] = ["all"]
+VIEW: List[str] = ["all"]
 
 
 class CreateSpec(BaseModel):
@@ -79,7 +79,7 @@ class FetchSpec(BaseModel):
     status: Optional[str] = Field(
         ..., description="Status of the session.", example="Running"
     )
-    views: Optional[str] = Field(..., description="Number of views.", example="all")
+    view: Optional[str] = Field(..., description="Number of views.", example="all")
 
     @root_validator(pre=True)
     def validate_values(cls, values: Dict[str, Any]) -> Dict[str, Any]:
@@ -95,6 +95,6 @@ class FetchSpec(BaseModel):
             assert values.get("kind") in KINDS, f"kind must be one of: {KINDS}"
         if values.get("status"):
             assert values.get("status") in STATUS, f"status must be one of: {STATUS}"
-        if values.get("views"):
-            assert values.get("views") in VIEWS, f"views must be one of: {VIEWS}"
+        if values.get("view"):
+            assert values.get("view") in VIEW, f"views must be one of: {VIEW}"
         return values

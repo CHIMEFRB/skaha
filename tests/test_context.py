@@ -15,4 +15,4 @@ def context():
 
 def test_context(context):
     """Test context fetch."""
-    assert context.resources()
+    assert "defaultCores" in context.resources()

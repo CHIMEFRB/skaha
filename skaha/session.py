@@ -1,15 +1,15 @@
 """Skaha Headless Session."""
 from asyncio import get_event_loop
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pydantic import root_validator
 from requests.exceptions import HTTPError
 from requests.models import Response
 
 from skaha.client import SkahaClient
-from skaha.models import CreateSpec
-from skaha.threaded import scale
+from skaha.models import CreateSpec, FetchSpec
 from skaha.utils import logs
+from skaha.utils.threaded import scale
 
 log = logs.get_logger(__name__)
 
@@ -68,7 +68,8 @@ class Session(SkahaClient):
               'startTime': '2222-12-07T05:45:58Z'},
               ...]
         """
-        parameters = {"type": kind, "status": status, "view": view}
+        specification: FetchSpec = FetchSpec(kind=kind, status=status, view=view)
+        parameters = specification.dict(exclude_none=True)
         log.debug(parameters)
         response: Response = self.session.get(url=self.server, params=parameters)  # type: ignore # noqa: E501
         response.raise_for_status()
@@ -205,7 +206,7 @@ class Session(SkahaClient):
                 )
             >>> ["hjko98yghj", "ikvp1jtp"]
         """
-        data: Dict[str, Any] = CreateSpec(
+        specification: CreateSpec = CreateSpec(
             name=name,
             image=image,
             cores=cores,
@@ -216,13 +217,18 @@ class Session(SkahaClient):
             args=args,
             env=env,
             replicas=replicas,
-        ).dict(exclude_none=True)
+        )
+        data: Dict[str, Any] = specification.dict(exclude_none=True)
         log.info(f"Creating {replicas} session(s) with parameters:")
         log.info(data)
+        from skaha.utils import convert
+
+        payload: List[Tuple[str, Any]] = convert.dict_to_tuples(data)
+        log.debug(f"Payload: {payload}")
         arguments: List[Any] = []
         for _ in range(replicas):
             data["name"] = name + "-" + str(_ + 1)
-            arguments.append({"url": self.server, "data": data})
+            arguments.append({"url": self.server, "params": payload})
         loop = get_event_loop()
         results = loop.run_until_complete(scale(self.session.post, arguments))
         responses: List[str] = []

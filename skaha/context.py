@@ -25,12 +25,16 @@ class Context(SkahaClient):
 
         Examples:
             >>> from skaha.context import Context
-                context = Context()
-                context.resources()
-            >>> {'defaultCores': 2,
-                 'defaultCoresHeadless': 1,
-                 ...}
-
+            >>> context = Context()
+            >>> context.resources()
+            {'defaultCores': 2,
+             'defaultCoresHeadless': 1,
+             'availableCores': [1, 2, 4, 8, 16],
+             'defaultRAM': 16,
+             'defaultRAMHeadless': 4,
+             'availableRAM': [1, 2, 4, 8, 16, 32, 64, 128, 192],
+             'availableGPUs': [1,2,3,...],
+            }
         """
         response: Response = self.session.get(url=self.server)  # type: ignore
         response.raise_for_status()

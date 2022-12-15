@@ -81,7 +81,7 @@ class SkahaClient(BaseModel):
     @root_validator(skip_on_failure=True)
     def session_set_headers(cls, values: Dict[str, Any]):
         """Set headers to session object after all values has been obtained."""
-        values["session"].headers.update({"X-Skaha-Server": values["server"]})
+        values["session"].headers.update({"X-Skaha-Server": str(values["server"])})
         values["session"].headers.update(
             {"Content-Type": "application/x-www-form-urlencoded"}
         )

@@ -36,12 +36,11 @@ class Images(SkahaClient):
 
         Examples:
             >>> from skaha.images import Images
-                images = Images()
-                images.fetch(kind="headless")
-            >>> ['images.canfar.net/chimefrb/baseband-polarization:latest',
-                ...
-                'images.canfar.net/skaha/terminal:0.1']
-
+            >>> images = Images()
+            >>> images.fetch(kind="headless")
+            ['images.canfar.net/chimefrb/sample:latest',
+             ...
+             'images.canfar.net/skaha/terminal:1.1.1']
         """
         data: Dict[str, str] = {}
         # If kind is not None, add it to the data dictionary
