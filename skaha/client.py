@@ -30,7 +30,9 @@ class SkahaClient(BaseModel):
     """SkahaClient is the base class for all other API clients.
 
     Args:
-        BaseModel (pydantic.BaseModel): Pydantic BaseModel.
+        server (str): Server URL.
+        certificate (str): Certificate file.
+        timeout (int): Timeout for requests.
 
     Raises:
         InvalidServerURL: If the server URL is invalid.

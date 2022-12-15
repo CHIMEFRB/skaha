@@ -101,7 +101,7 @@ class Session(SkahaClient):
         """Get information about session[s].
 
         Args:
-            session_id (Union[List[str], str]): Session ID[s].
+            id (Union[List[str], str]): Session ID[s].
 
         Returns:
             Dict[str, Any]: Session information.

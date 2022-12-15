@@ -12,7 +12,7 @@ requests = "^2"
 pydantic = "^1"
 toml = "^0.10.2"
 mkdocs-material = {version = "*", optional = true}
-mkdocstrings = {version = "*", optional = true}
+mkdocstrings-python = {version = "*", optional = true}
 
 
 [tool.poetry.dev-dependencies]
@@ -22,7 +22,10 @@ pre-commit = "*"
 pytest-cov = "*"
 
 [tool.poetry.extras]
-docs = ["mkdocs-material", "mkdocstrings"]
+docs = ["mkdocs-material", "mkdocstrings-python"]
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^2.20.0"
 
 [build-system]
 requires = ["poetry-core>=1.2.2"]

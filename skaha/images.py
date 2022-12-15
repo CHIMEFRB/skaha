@@ -11,12 +11,7 @@ log = get_logger(__name__)
 
 
 class Images(SkahaClient):
-    """Skaha Image Management.
-
-    Args:
-        SkahaClient (object): Skaha HTTP Client
-
-    """
+    """Skaha Image Management."""
 
     @root_validator
     def set_server(cls, values: Dict[str, Any]):
@@ -29,10 +24,9 @@ class Images(SkahaClient):
 
         Args:
             kind (Optional[str], optional): Type of image. Defaults to None.
-            prune (bool, optional): Provide only image name. Defaults to True.
 
         Returns:
-            list: A list of images on the skaha server.
+            List[str]: A list of images on the skaha server.
 
         Examples:
             >>> from skaha.images import Images

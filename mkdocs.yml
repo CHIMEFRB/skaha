@@ -64,7 +64,9 @@ markdown_extensions:
 
 nav:
   - Skaha: index.md
-  - Reference:
+  - Get Started: get-started.md
+  - Examples: examples.md
+  - API Reference:
     - Client: client.md
     - Session: session.md
     - Images: images.md
