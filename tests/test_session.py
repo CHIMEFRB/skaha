@@ -9,6 +9,8 @@ from pydantic import ValidationError
 
 from skaha.session import Session
 
+pytest.IDENTITY: List[str] = []  # type: ignore
+
 
 @pytest.fixture(scope="module")
 def name():
@@ -69,7 +71,7 @@ def test_create_session_cmd_without_headless(session: Session, name: str):
     with pytest.raises(ValidationError):
         session.create(
             name=name,
-            kind="vnc",
+            kind="notebook",
             image="ubuntu:latest",
             cmd="bash",
             replicas=1,
@@ -90,19 +92,30 @@ def test_create_session(session: Session, name: str):
     )
     assert len(identity) == 1
     assert identity[0] != ""
+    pytest.IDENTITY = identity  # type: ignore
 
-    # Get session info
-    info = session.info(identity)
+
+def test_get_session_info(session: Session, name: str):
+    """Test getting session info."""
+    sleep(10)
+    info = session.info(pytest.IDENTITY)  # type: ignore
     assert info[0]["name"] == name
 
-    # Sleep for 5 seconds
-    sleep(5)
 
-    # Get logs for the session
-    logs = session.logs(identity)
-    assert len(logs) == 1
-    assert logs[identity[0]] != ""
+def test_session_logs(session: Session, name: str):
+    """Test getting session logs."""
+    sleep(10)
+    logs = session.logs(pytest.IDENTITY)  # type: ignore
+    success = False
+    for line in logs[pytest.IDENTITY[0]].split("\n"):  # type: ignore
+        if "TEST=test" in line:
+            success = True
+            break
+    assert success
 
+
+def test_delete_session(session: Session, name: str):
+    """Test deleting a session."""
     # Delete the session
-    deletion = session.destroy(identity)
-    assert deletion == {name: True}
+    deletion = session.destroy(pytest.IDENTITY[0])  # type: ignore
+    assert deletion == {pytest.IDENTITY[0]: True}  # type: ignore
