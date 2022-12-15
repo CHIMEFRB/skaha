@@ -15,4 +15,4 @@ jobs:
           python-version: 3.7
       - run: pip install --upgrade "poetry>=1.2.2"
       - run: poetry install --without=dev -E docs
-      - run: mkdocs gh-deploy --force
+      - run: poetry mkdocs gh-deploy --force
