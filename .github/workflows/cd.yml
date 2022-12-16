@@ -16,26 +16,25 @@ jobs:
         with:
           release-type: python
           package-name: skaha
-  pypi-release:
-    runs-on: ubuntu-latest
-    if : ${{ steps.release-please.outputs.release_created }}
-    needs: release-please
-    steps:
       -
         name: Checkout
+        if: ${{ steps.release-please.outputs.release_created }}
         uses: actions/checkout@v2
       -
         name: Set up Python
+        if: ${{ steps.release-please.outputs.release_created }}
         uses: actions/setup-python@v4
         with:
           python-version: 3.7
       -
         name: Install dependencies
+        if: ${{ steps.release-please.outputs.release_created }}
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade poetry
       -
         name: Build and publish
+        if: ${{ steps.release-please.outputs.release_created }}
         env:
           PYPI_USERNAME: __token__
           PYPI_PASSWORD: ${{ secrets.PYPI_TOKEN }}
