@@ -8,7 +8,7 @@ from requests.models import Response
 
 from skaha.client import SkahaClient
 from skaha.models import CreateSpec, FetchSpec
-from skaha.utils import logs
+from skaha.utils import convert, logs
 from skaha.utils.threaded import scale
 
 log = logs.get_logger(__name__)
@@ -169,7 +169,7 @@ class Session(SkahaClient):
         gpu: Optional[int] = None,
         cmd: Optional[str] = None,
         args: Optional[str] = None,
-        env: Optional[Dict[str, Any]] = None,
+        env: Dict[str, Any] = {},
         replicas: int = 1,
     ) -> List[str]:
         """Launch a skaha session.
@@ -187,8 +187,10 @@ class Session(SkahaClient):
             replicas (int, optional): Number of sessions to launch. Defaults to 1.
 
         Notes:
-            When replicas is greater than 1, the name of the session suffixed with
-            a number. eg. test-1, test-2, test-3
+            The name of the session suffixed with the replica number. eg. test-1, test-2
+            Each container will have the following environment variables injected:
+                * REPLICA_ID - The replica number
+                * REPLICA_COUNT - The total number of replicas
 
         Returns:
             List[str]: A list of session IDs for the launched sessions.
@@ -221,13 +223,14 @@ class Session(SkahaClient):
         data: Dict[str, Any] = specification.dict(exclude_none=True)
         log.info(f"Creating {replicas} session(s) with parameters:")
         log.info(data)
-        from skaha.utils import convert
-
-        payload: List[Tuple[str, Any]] = convert.dict_to_tuples(data)
-        log.debug(f"Payload: {payload}")
+        payload: List[Tuple[str, Any]] = []
         arguments: List[Any] = []
-        for _ in range(replicas):
-            data["name"] = name + "-" + str(_ + 1)
+        for replica in range(replicas):
+            data["name"] = name + "-" + str(replica + 1)
+            data["env"].update({"REPLICA_ID": str(replica + 1)})
+            data["env"].update({"REPLICA_COUNT": str(replicas)})
+            log.debug(f"Replica Data: {data}")
+            payload = convert.dict_to_tuples(data)
             arguments.append({"url": self.server, "params": payload})
         loop = get_event_loop()
         results = loop.run_until_complete(scale(self.session.post, arguments))

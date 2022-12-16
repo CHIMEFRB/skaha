@@ -34,10 +34,10 @@ class CreateSpec(BaseModel):
     args: Optional[str] = Field(
         None, description="Arguments to the command.", example="-la"
     )
-    env: Optional[Dict[str, Any]] = Field(
-        None, description="Environment variables.", example={"TEST": "test"}
+    env: Dict[str, Any] = Field(
+        ..., description="Environment variables.", example={"TEST": "test"}
     )
-    replicas: int = Field(1, description="Number of sessions to launch.", ge=1, le=128)
+    replicas: int = Field(1, description="Number of sessions to launch.", ge=1, le=256)
 
     # Validate that cmd, args and env are only used with headless sessions.
     @root_validator(pre=True)
