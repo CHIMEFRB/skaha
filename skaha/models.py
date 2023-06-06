@@ -29,7 +29,7 @@ class CreateSpec(BaseModel):
     cores: int = Field(1, description="Number of cores.", ge=1, le=256)
     ram: int = Field(4, description="Amount of RAM (GB).", ge=1, le=512)
     kind: str = Field(..., description="Type of skaha session.", example="headless")
-    gpu: Optional[int] = Field(None, description="Number of GPUs.", ge=1, le=28)
+    gpus: Optional[int] = Field(None, description="Number of GPUs.", ge=1, le=28)
     cmd: Optional[str] = Field(None, description="Command to run.", example="ls")
     args: Optional[str] = Field(
         None, description="Arguments to the command.", example="-la"

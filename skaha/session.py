@@ -214,7 +214,7 @@ class Session(SkahaClient):
             cores=cores,
             ram=ram,
             kind=kind,
-            gpu=gpu,
+            gpus=gpu,
             cmd=cmd,
             args=args,
             env=env,
