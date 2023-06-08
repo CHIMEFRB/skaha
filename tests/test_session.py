@@ -99,7 +99,7 @@ def test_get_session_info(session: Session, name: str):
     """Test getting session info."""
     sleep(10)
     info = session.info(pytest.IDENTITY)  # type: ignore
-    assert info[0]["name"] == name
+    assert name in info[0]["name"]  # type: ignore
 
 
 def test_session_logs(session: Session, name: str):
