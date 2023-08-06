@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.7
-      - run: pip install --upgrade "poetry>=1.2.2"
-      - run: poetry install --without=dev -E docs
+          python-version: 3.8
+      - run: pip install --upgrade poetry
+      - run: poetry install --with=dev --sync
       - run: poetry run mkdocs gh-deploy --force
