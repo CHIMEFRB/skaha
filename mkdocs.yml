@@ -1,28 +1,47 @@
-site_name: Skaha
+site_name: Skaha API
+site_url: https://chimefrb.github.io/skaha/
 site_author: Shiny Brar
-site_description: Client of Skaha Container Service
+site_description: Python Client for Skaha Science Platform
+repo_url: https://github.com/chimefrb/skaha/
 repo_name: chimefrb/skaha
-repo_url: https://github.com/chimefrb/skaha
-copyright: Copyright &copy; 2016 - 2021 CHIME/FRB Collaboration
-
+edit_uri: blob/main/docs/
+copyright: Copyright &copy; 2016 - 2023 CHIME/FRB Collaboration
+remote_branch: gh-pages
 
 theme:
   name: material
   palette:
-    scheme: default
-    primary: indigo
-    accent: indigo
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to light mode
   font:
     text: Roboto
     code: Roboto Mono
   language: en
+  icon:
+    repo: fontawesome/brands/github-alt
+    edit: material/pencil-box
+    view: material/eye-outline
   features:
     - tabs
     - instant
+    - content.action.edit
+    - offline
 
 plugins:
   - search
   - mkdocstrings
+  - git-revision-date-localized:
+        type: date
+        fallback_to_build_date: true
 
 # Extensions
 markdown_extensions:
