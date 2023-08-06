@@ -7,7 +7,7 @@ repos:
         args: [ --multi-line=3, --trailing-comma, --force-grid-wrap=0, --use-parentheses, --line-width=88]
 
   - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
+    rev: 6.1.0
     hooks:
     - id: flake8
       args: [--max-line-length=89, --max-complexity=15]
@@ -22,18 +22,18 @@ repos:
 
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.4.0
+    rev: v3.10.1
     hooks:
     -   id: pyupgrade
         args: [--py36-plus]
 
   - repo: https://github.com/psf/black
-    rev: 23.3.0
+    rev: 23.7.0
     hooks:
       - id: black
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.3.0
+    rev: v1.4.1
     hooks:
       - id: mypy
         additional_dependencies: ["types-toml", "types-setuptools", "types-requests", "types-attrs"]
@@ -46,7 +46,7 @@ repos:
         args: [--convention=google, --add-ignore=D104]
 
   - repo: https://github.com/asottile/blacken-docs
-    rev: 1.13.0
+    rev: 1.15.0
     hooks:
       - id: blacken-docs
 
