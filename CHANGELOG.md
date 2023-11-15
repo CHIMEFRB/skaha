@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.2](https://github.com/CHIMEFRB/skaha/compare/v1.3.1...v1.3.2) (2023-11-15)
+
+
+### Bug Fixes
+
+* **CI:** change to pre-commit checks ([6216b02](https://github.com/CHIMEFRB/skaha/commit/6216b0279b14e7d716e01f7f9782405ecb9244ca))
+* **tests:** fixed threading issue caused when one of the futures timesout ([ba55a38](https://github.com/CHIMEFRB/skaha/commit/ba55a380ab5f8bd9c06e34a9c6cf543ea4ec7923))
+
 ## [1.3.1](https://github.com/CHIMEFRB/skaha/compare/v1.3.0...v1.3.1) (2023-11-15)
 
 
