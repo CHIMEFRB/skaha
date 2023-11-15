@@ -1,0 +1,72 @@
+name: Continous Integration
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  pre-commit-checks:
+    runs-on: ubuntu-latest
+    steps:
+    -
+      name: Setup code repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+    -
+      name: Setup Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    -
+      name: Load cached pre-commit repos
+      id: cached-pre-commit-repos
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/pre-commit
+        key: poetry-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+    -
+      name: Perform pre-commit checks
+      run: |
+        pip install pre-commit
+        pre-commit run -a
+
+  tests:
+    needs: pre-commit-checks
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    -
+      name: Setup code repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+    -
+      name: Setup Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    -
+        name: Install Poetry
+        run: |
+            pip install poetry
+    -
+        name: Load cached Poetry virtual environment
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: poetry-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+    -
+      name: Install dependencies
+      run: |
+          poetry install --with dev
+    -
+      name: Run tests
+      run: |
+          poetry run pytest tests/test_threading.py

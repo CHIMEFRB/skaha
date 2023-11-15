@@ -1,8 +1,8 @@
+from importlib import metadata
 from logging import getLogger
 from pathlib import Path
 
 import toml
-from pkg_resources import DistributionNotFound, get_distribution
 
 log = getLogger(__name__)
 
@@ -10,8 +10,8 @@ log = getLogger(__name__)
 BASE_PATH: Path = Path(__file__).absolute().parent.parent
 
 try:
-    __version__ = get_distribution("skaha").version
-except DistributionNotFound as error:  # pragma: no cover
+    __version__ = metadata.version("skaha")
+except metadata.PackageNotFoundError as error:  # pragma: no cover
     log.warning(error)
     pyproject = toml.load(BASE_PATH / "pyproject.toml")
     __version__ = pyproject["tool"]["poetry"]["version"]

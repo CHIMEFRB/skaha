@@ -32,4 +32,4 @@ async def scale(
             loop.run_in_executor(executor, partial(function, **arguments[index]))
             for index in range(workers)
         ]
-        return await asyncio.gather(*futures)
+        return await asyncio.gather(*futures, return_exceptions=True)
