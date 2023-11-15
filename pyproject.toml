@@ -34,7 +34,7 @@ classifiers = [
 changelog = "https://chimefrb.github.io/skaha/changelog/"
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 vos = "^3"
 requests = "^2"
 pydantic = "^1"
