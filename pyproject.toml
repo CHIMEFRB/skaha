@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "skaha"
-version = "1.3.0"
+version = "1.3.1"
 description = "Python Client for Skaha Container Platform on CANFAR"
 authors = ["Shiny Brar <charanjotbrar@gmail.com>"]
 license = "MIT"
