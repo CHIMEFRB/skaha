@@ -1,9 +1,37 @@
 [tool.poetry]
 name = "skaha"
 version = "1.3.0"
-description = "Python Client for Skaha Container Platform in CANFAR"
+description = "Python Client for Skaha Container Platform on CANFAR"
 authors = ["Shiny Brar <charanjotbrar@gmail.com>"]
 license = "MIT"
+readme = "README.md"
+keywords = ["skaha", "canfar", "python", "client", "container", "platform"]
+
+homepage = "https://chimefrb.github.io/skaha/"
+repository = "https://github.com/chimefrb/skaha"
+documentation = "https://chimefrb.github.io/skaha/"
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[tool.poetry.urls]
+changelog = "https://chimefrb.github.io/skaha/changelog/"
 
 [tool.poetry.dependencies]
 python = "^3.7"

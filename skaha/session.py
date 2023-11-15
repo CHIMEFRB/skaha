@@ -180,6 +180,7 @@ class Session(SkahaClient):
             cores (int, optional): Number of cores. Defaults to 2.
             ram (int, optional): Amount of RAM (GB). Defaults to 4.
             kind (str, optional): Type of skaha session. Defaults to "headless".
+            gpu (Optional[int], optional): Number of GPUs. Defaults to None.
             cmd (Optional[str], optional): Command to run. Defaults to None.
             args (Optional[str], optional): Arguments to the command. Defaults to None.
             env (Optional[Dict[str, Any]], optional): Environment variables to inject.
@@ -201,6 +202,7 @@ class Session(SkahaClient):
                     image='images.canfar.net/skaha/terminal:1.1.1',
                     cores=2,
                     ram=8,
+                    gpu=1,
                     kind="headless",
                     cmd="env",
                     env={"TEST": "test"},

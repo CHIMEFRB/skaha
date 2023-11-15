@@ -14,6 +14,7 @@
         image="images.canfar.net/chimefrb/alpine:keep",
         cores=2,
         ram=8,
+        gpu=1,
         kind="headless",
         cmd="env",
         env={"TEST": "test"},
@@ -21,5 +22,6 @@
     )
     ```
 
-[Get Started](get-started.md){: .md-button .md-button--primary } 
+[Get Started :material-coffee:](get-started.md){: .md-button .md-button--primary } 
 [Go to GitHub :fontawesome-brands-github:](https://github.com/chimefrb/skaha){: .md-button .md-button--primary }
+[Changelog :material-vector-polyline-remove:](changelog.md){: .md-button .md-button--primary }

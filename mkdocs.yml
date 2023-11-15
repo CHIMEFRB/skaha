@@ -90,3 +90,4 @@ nav:
     - Images: images.md
     - Context: context.md
     - Client: client.md
+  - Change Log: changelog.md
