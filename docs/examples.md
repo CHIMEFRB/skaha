@@ -8,6 +8,7 @@ The bread and butter of Skaha is the Session API. This API allows you to create,
 
 ```python title="Create a session"
 from skaha.session import Session
+
 session = Session()
 session_id = session.create(
     name="test",
@@ -95,6 +96,7 @@ The Image API allows you to get information about the images available on the Sk
 
 ```python title="Get image information"
 from skaha.images import Images
+
 images = Images()
 images.fetch()
 ```
@@ -130,6 +132,7 @@ Context API allows the user to get information about the resources available on 
 
 ```python title="Get context information"
 from skaha.context import Context
+
 context = Context()
 context.resources()
 ```
@@ -142,6 +145,6 @@ context.resources()
     "defaultRAM": 16,
     "defaultRAMHeadless": 4,
     "availableRAM": [1, 2, 4, 8, 16, 32, 64, 128, 192],
-    "availableGPUs": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28],
+    "availableGPUs": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...],
 }
 ```
