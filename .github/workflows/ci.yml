@@ -32,7 +32,7 @@ jobs:
       name: Perform pre-commit checks
       run: |
         pip install pre-commit
-        pre-commit run -a
+        pre-commit run --all-files
 
   tests:
     needs: pre-commit-checks
