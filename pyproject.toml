@@ -1,16 +1,14 @@
-[tool.poetry]
+[project]
 name = "skaha"
 version = "1.3.1"
-description = "Python Client for Skaha Container Platform on CANFAR"
-authors = ["Shiny Brar <charanjotbrar@gmail.com>"]
+requires-python = ">=3.8"
+description = "Python Client for CANFAR Science Platform"
 license = "MIT"
 readme = "README.md"
 keywords = ["skaha", "canfar", "python", "client", "container", "platform"]
-
-homepage = "https://chimefrb.github.io/skaha/"
-repository = "https://github.com/chimefrb/skaha"
-documentation = "https://chimefrb.github.io/skaha/"
-
+authors =[ 
+    {"name"="Shiny Brar", "email"="shiny.brar@nrc-cnrc.gc.ca>"}
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",
@@ -22,37 +20,38 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Scientific/Engineering :: Astronomy",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+dependencies = [
+    "click>=8.1.7",
+    "defusedxml>=0.7.1",
+    "pydantic>=2.9.2",
+    "requests>=2.32.3",
+    "toml>=0.10.2",
+    "vos>=3.6.1.1",
+]
 
-[tool.poetry.urls]
-changelog = "https://chimefrb.github.io/skaha/changelog/"
+[project.urls]
+"homepage"="https://chimefrb.github.io/skaha/"
+"repository"="https://github.com/chimefrb/skaha"
+"documentation"="https://chimefrb.github.io/skaha/"
+"changelog"="https://chimefrb.github.io/skaha/changelog/"
+"issues"="https://github.com/chimefrb/skaha/issues"
 
-[tool.poetry.dependencies]
-python = "^3.8"
-vos = "^3"
-requests = "^2"
-pydantic = "^1"
-toml = "^0.10"
-defusedxml = "^0.7"
-click = "^8.1"
-
-[tool.poetry.group.dev.dependencies]
-pre-commit = "*"
-mypy = "*"
-pytest = "*"
-black = "*"
-pytest-cov = "*"
-mkdocs-material = "^9.1"
-mkdocstrings-python = "^1.1"
-mkdocs-git-revision-date-localized-plugin = "^1.2.0"
-pytest-asyncio = "^0.21.1"
-
-[build-system]
-requires = ["poetry-core>=1.2.2"]
-build-backend = "poetry.core.masonry.api"
+[tool.uv]
+dev-dependencies = [
+    "black>=23",
+    "mkdocs-git-revision-date-localized-plugin>=1.2.9",
+    "mkdocs-material>=9.5.41",
+    "mkdocstrings-python>=1",
+    "mypy>=1.12.0",
+    "pre-commit>=3",
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.6.9",
+]
