@@ -6,7 +6,7 @@ description = "Python Client for CANFAR Science Platform"
 license = "MIT"
 readme = "README.md"
 keywords = ["skaha", "canfar", "python", "client", "container", "platform"]
-authors =[ 
+authors =[
     {"name"="Shiny Brar", "email"="shiny.brar@nrc-cnrc.gc.ca>"}
 ]
 classifiers = [
