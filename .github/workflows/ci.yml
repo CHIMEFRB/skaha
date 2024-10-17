@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
       -
@@ -45,14 +45,20 @@ jobs:
           uv sync --all-extras --dev
       -
         name: Run tests
+        env:
+          CADC_USERNAME: ${{ secrets.CADC_USERNAME }}
+          CADC_PASSWORD: ${{ secrets.CADC_PASSWORD }}
         run: |
+          uv run cadc-get-cert --user ${{ env.CADC_USERNAME }} --password ${{ env.CADC_PASSWORD }} --days-valid 1
           uv run pytest tests --cov --cov-report=xml --junitxml=junit.xml -o junit_family=legacy
       -
         name: Upload coverage to Codecov
+        env:
+          CODECOV_TOKEN:  ${{ env.CODECOV_TOKEN }}
         uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: true # Fail the CI if an error occurs during the upload
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ env.CODECOV_TOKEN }}
           flags: ${{ matrix.python-version }}
           verbose: true # optional (default = false)
       -

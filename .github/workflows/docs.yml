@@ -14,4 +14,4 @@ jobs:
       - uses: astral-sh/setup-uv@v3
       - run: |
           uv python install
-          uv run mkdocs gh-deploy
+          uv run mkdocs gh-deploy --force
