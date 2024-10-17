@@ -85,7 +85,7 @@ def test_create_session(session: Session, name: str):
         kind="headless",
         cores=1,
         ram=1,
-        image="images.canfar.net/chimefrb/testing:keep",
+        image="images.canfar.net/skaha/terminal:1.1.1",
         cmd="env",
         replicas=1,
         env={"TEST": "test"},

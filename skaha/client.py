@@ -1,24 +1,24 @@
 """Skaha Client."""
+
 import logging
-from os import environ
-from platform import machine, platform, python_version, release, system
+from os import R_OK, access, environ
+from pathlib import Path
 from time import asctime, gmtime
-from typing import Any, Dict, Type
+from typing import Optional, Type
 
 from pydantic import (
     AnyHttpUrl,
     BaseModel,
     Field,
     FilePath,
-    ValidationError,
-    root_validator,
-    validator,
+    field_validator,
+    model_validator,
 )
-from pydantic.tools import parse_obj_as
 from requests import Session
+from typing_extensions import Self
 
 from skaha import __version__
-from skaha.exceptions import InvalidCertificateError, InvalidServerURL
+from skaha.models import ContainerRegistry
 
 # Setup logging format
 logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
@@ -27,87 +27,99 @@ log = logging.getLogger(__name__)
 
 
 class SkahaClient(BaseModel):
-    """SkahaClient is the base class for all other API clients.
+    """Skaha Client.
 
     Args:
         server (str): Server URL.
         version (str): Skaha API version.
         certificate (str): Certificate file.
         timeout (int): Timeout for requests.
+        session (Session): Requests HTTP Session object.
+        verify (bool): Verify SSL certificate.
+        registry (ContainerRegistry): Credentials for a private container registry.
+
+    Returns:
+        SkahaClient: Skaha Client.
 
     Raises:
-        InvalidServerURL: If the server URL is invalid.
-        InvalidCertificateError: If the client is given an invalid certificate.
+        ValidationError: If the client is misconfigured.
 
     Examples:
         >>> from skaha.client import SkahaClient
-            class MyClient(SkahaClient):
-                pass
 
+            class Sample(SkahaClient):
+                pass
     """
 
     server: AnyHttpUrl = Field(
-        default="https://ws-uv.canfar.net/skaha", title="Server URL", type=AnyHttpUrl
+        default="https://ws-uv.canfar.net/skaha",
+        title="Skaha Server URL",
+        description="Location of the Skaha API server.",
     )
-    version: str = Field(default="v0", title="Skaha API Version")
+    version: str = Field(
+        default="v0",
+        title="Skaha API Version",
+        description="Version of the Skaha API to use.",
+    )
     certificate: FilePath = Field(
         default="{HOME}/.ssl/cadcproxy.pem".format(HOME=environ["HOME"]),
-        type=str,
-        title="Certificate File",
+        title="X509 Certificate",
+        description="Path to the X509 certificate used for authentication.",
+        validate_default=True,
     )
-    timeout: int = Field(default=15, title="Timeout")
-    session: Type[Session] = Field(default=Session())
-    cert: str = Field(default="")
+    timeout: int = Field(
+        default=15,
+        title="HTTP Timeout",
+        description="HTTP Timeout in seconds for requests.",
+    )
+    session: Type[Session] = Field(
+        default=Session(),
+        title="Requests HTTP Session",
+        description="Requests HTTP Session object.",
+    )
     verify: bool = Field(default=True)
+    registry: Optional[Type[ContainerRegistry]] = Field(
+        default=None,
+        title="Container Registry",
+        description="Credentials for a private container registry.",
+    )
 
-    @validator("server", pre=True, always=True)
-    def server_has_valid_url(cls, value: str):
-        """Check if server is a valid url."""
-        try:
-            value = parse_obj_as(AnyHttpUrl, value)
-        except ValidationError as error:
-            log.error(error)
-            raise InvalidServerURL("invalid server url")
+    @field_validator("certificate")
+    def certificate_exists_and_is_readable(cls, value: FilePath) -> FilePath:
+        """Validate the certificate file.
+
+        Args:
+            value (FilePath): Path to the certificate file.
+
+        Returns:
+            FilePath: Validated Path to the certificate file.
+        """
+        # Check if the certificate is a valid path
+        assert (
+            Path(value).resolve(strict=True).is_file()
+        ), f"{value} is not a file or does not exist."
+        assert access(Path(value), R_OK), f"{value} is not readable."
         return value
 
-    @validator("certificate", pre=True, always=True)
-    def certificate_exists_and_is_readable(cls, value: str):
-        """Check the certificate."""
-        try:
-            value = parse_obj_as(FilePath, value)  # type: ignore
-        except ValidationError as error:
-            log.error(error)
-            raise InvalidCertificateError(
-                "certificate needs to be absolute path and readable"
-            )
-        return value
+    @model_validator(mode="after")
+    def update_session(self) -> Self:
+        """Update the session object with the HTTP headers.
 
-    @root_validator(skip_on_failure=True)
-    def session_set_headers(cls, values: Dict[str, Any]):
-        """Set headers to session object after all values has been obtained."""
-        values["session"].headers.update({"X-Skaha-Server": str(values["server"])})
-        values["session"].headers.update(
+        Returns:
+            Self: Updated SkahaClient object.
+        """
+        self.session.headers.update({"X-Skaha-Server": str(self.server)})
+        self.session.headers.update(
             {"Content-Type": "application/x-www-form-urlencoded"}
         )
-        values["session"].headers.update({"Accept": "*/*"})
-        values["session"].headers.update({"User-Agent": "skaha-client"})
-        values["session"].headers.update({"Date": asctime(gmtime())})
-        values["session"].headers.update({"X-Skaha-Version": __version__})
-        values["session"].headers.update(
-            {"X-Skaha-Client-Python-Version": python_version()}
-        )
-        values["session"].headers.update({"X-Skaha-Client-Arch": machine()})
-        values["session"].headers.update({"X-Skaha-Client-OS": system()})
-        values["session"].headers.update({"X-Skaha-Client-OS-Version": release()})
-        values["session"].headers.update({"X-Skaha-Client-Platform": platform()})
-        return values
-
-    @root_validator(skip_on_failure=True)
-    def assign_cert_values(cls, values: Dict[str, Any]):
-        """Check the certificate."""
-        values["session"].headers.update({"X-Skaha-Authentication-Type": "certificate"})
-        values["cert"] = str(values["certificate"])
-        values["verify"] = True
-        values["session"].cert = values["cert"]
-        values["session"].verify = values["verify"]
-        return values
+        self.session.headers.update({"Accept": "*/*"})
+        self.session.headers.update({"Date": asctime(gmtime())})
+        self.session.headers.update({"X-Skaha-Client": f"python/{__version__}"})
+        self.session.headers.update({"X-Skaha-Authentication-Type": "certificate"})
+        self.session.cert = str(self.certificate)
+        self.session.verify = self.verify
+        if self.registry:
+            self.session.headers.update(
+                {"X-Skaha-Registry-Auth": f"{self.registry.encoded()}"}
+            )
+        return self

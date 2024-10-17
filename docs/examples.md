@@ -2,7 +2,7 @@
 
 ## Session API
 
-The bread and butter of Skaha is the Session API. This API allows you to create, destroy, and get information about your sessions on the Skaha platform.
+The bread and butter of Skaha is the Session API. This API allows you to create, destroy, and get information about your sessions on the CANFAR Science Platform.
 
 ### Creating a Session
 
@@ -10,6 +10,9 @@ The bread and butter of Skaha is the Session API. This API allows you to create,
 from skaha.session import Session
 
 session = Session()
+```
+
+```python title="Spawn a session"
 session_id = session.create(
     name="test",
     image="images.canfar.net/chimefrb/testing:keep",
@@ -29,6 +32,21 @@ The response will be a list of session IDs created.
 print(session_id)
 ["mrjdtbn9", "ov6doae7", "ayv4553m"]
 ```
+
+!!! note "Container Replicas"
+    When spawning sessions with the Skaha API, it adds two additional environment variables to each container:
+        - `REPLICA_COUNT`: An integer representing the total number of replicas spawned, e.g. 2.
+        - `REPLICA_ID`: An integer representing the ID of the replica, e.g. 0, 1, 2.
+
+!!! note "Container Registry Access"
+    If you are using a private container image from the CANFAR Harbor Registry, you need to provide your harbor `username` and the `CLI Secret` through a `ContainerRegistry` object.
+    ```python
+    from skaha.models import ContainerRegistry
+    from skaha.session import Session
+
+    registry = ContainerRegistry(username="username", password="sUp3rS3cr3t")
+    session = Session(registry=registry)
+    ```
 
 ### Getting Session Information
 
@@ -90,7 +108,8 @@ session.destroy(session_id)
 
 ## Image API
 
-The Image API allows you to get information about the images available on the Skaha platform. Nominally, 
+The Image API allows you to get information about the **publicly available** images on the CANFAR Science Platform through
+the CANFAR Harbor Registry.
 
 ### Getting Image Information
 

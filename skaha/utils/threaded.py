@@ -1,4 +1,5 @@
 """General purpose threaded scaler."""
+
 import asyncio
 import concurrent.futures
 from functools import partial

@@ -1,4 +1,5 @@
 """Skaha Logging Utility."""
+
 import logging
 from typing import Optional
 

@@ -2,8 +2,9 @@
 
 from typing import Any, Dict
 
-from pydantic import root_validator
+from pydantic import model_validator
 from requests.models import Response
+from typing_extensions import Self
 
 from skaha.client import SkahaClient
 
@@ -11,11 +12,11 @@ from skaha.client import SkahaClient
 class Context(SkahaClient):
     """Get available resources from the skaha server."""
 
-    @root_validator
-    def set_server(cls, values: Dict[str, Any]):
+    @model_validator(mode="after")
+    def update_server(self) -> Self:
         """Sets the server path after validation."""
-        values["server"] = f"{values['server']}/{values['version']}/context"
-        return values
+        self.server = f"{self.server}/{self.version}/context"  # type: ignore
+        return self
 
     def resources(self) -> Dict[str, Any]:
         """Get available resources from the skaha server.

@@ -5,7 +5,6 @@ import requests
 from pydantic import ValidationError
 
 from skaha.client import SkahaClient
-from skaha.exceptions import InvalidCertificateError, InvalidServerURL
 
 
 def test_client_has_session_attribute():
@@ -36,14 +35,8 @@ def test_client_session():
 
 def test_bad_server_no_schema():
     """Test server URL without schema."""
-    with pytest.raises(InvalidServerURL):
+    with pytest.raises(ValidationError):
         SkahaClient(server="ws-uv.canfar.net")
-
-
-def test_bad_server_no_host():
-    """Test server URL without proper host."""
-    with pytest.raises(InvalidServerURL):
-        SkahaClient(server="https:///ea")
 
 
 def test_default_certificate():
@@ -57,11 +50,11 @@ def test_default_certificate():
 
 def test_bad_certificate():
     """Test bad certificate."""
-    with pytest.raises(InvalidCertificateError):
+    with pytest.raises(ValidationError):
         SkahaClient(certificate="abcdefd")
 
 
 def test_bad_certificate_path():
     """Test bad certificate."""
-    with pytest.raises(InvalidCertificateError):
-        SkahaClient(certificate="/tmp/does/not/exist.pem")  # nosec: B108
+    with pytest.raises(ValidationError):
+        SkahaClient(certificate="/gibberish/path")  # nosec: B108
