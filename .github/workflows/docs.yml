@@ -1,4 +1,5 @@
-name: docs
+name: Deploy Docs
+
 on:
   push:
     branches:
@@ -10,9 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.8
-      - run: pip install --upgrade poetry
-      - run: poetry install --with=dev --sync
-      - run: poetry run mkdocs gh-deploy --force
+      - uses: astral-sh/setup-uv@v3
+      - run: |
+          uv python install
+          uv mkdocs build get-deps
+          uv mkdocs gh-deploy

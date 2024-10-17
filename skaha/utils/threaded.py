@@ -34,3 +34,21 @@ async def scale(
             for index in range(workers)
         ]
         return await asyncio.gather(*futures, return_exceptions=True)
+
+
+def get_event_loop() -> asyncio.AbstractEventLoop:
+    """Get the event loop.
+
+    Returns:
+        asyncio.AbstractEventLoop: The event loop.
+
+    Examples:
+        >>> from skaha.threaded import get_event_loop
+            loop = get_event_loop()
+    """
+    try:
+        return asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return loop

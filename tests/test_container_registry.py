@@ -47,4 +47,4 @@ def test_base64_encoding():
     """Test base64 encoding."""
     registry = ContainerRegistry(username="test", secret="supersecret")  # nosec
     # Encoding basedon https://www.base64encode.org/
-    assert registry.encoded == "dGVzdDpzdXBlcnNlY3JldA=="  # nosec
+    assert registry.encoded() == "dGVzdDpzdXBlcnNlY3JldA=="  # nosec
