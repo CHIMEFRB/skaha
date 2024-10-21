@@ -14,7 +14,7 @@ try:
 except metadata.PackageNotFoundError as error:  # pragma: no cover
     log.warning(error)
     pyproject = toml.load(BASE_PATH / "pyproject.toml")
-    __version__ = pyproject["tool"]["poetry"]["version"]
+    __version__ = pyproject.get("project", {}).get("version", "unknown")
 except Exception as error:  # pragma: no cover
     log.warning(error)
     log.warning("unable to find skaha client version")

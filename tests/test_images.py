@@ -20,4 +20,6 @@ def test_images_fetch(images: Images):
 
 def test_images_with_kind(images: Images):
     """Test fetching images with kind."""
-    assert "images.canfar.net/chimefrb/testing:keep" in images.fetch(kind="headless")
+    assert "images.canfar.net/skaha/base-notebook:latest" in images.fetch(
+        kind="notebook"
+    )

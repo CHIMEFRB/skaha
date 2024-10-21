@@ -1,3 +1,8 @@
+# Skaha Client
+
+The `skaha.client` module provides a client for the Skaha server. The client is based of the
+`Requests` library and provides a simple interface to the Skaha server. The client configures the
+authorization headers for user authentication and container registry access.
 
 ::: skaha.client.SkahaClient
     handler: python

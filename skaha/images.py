@@ -1,8 +1,10 @@
 """Skaha Image Management."""
-from typing import Any, Dict, List, Optional
 
-from pydantic import root_validator
+from typing import Dict, List, Optional
+
+from pydantic import model_validator
 from requests.models import Response
+from typing_extensions import Self
 
 from skaha.client import SkahaClient
 from skaha.utils.logs import get_logger
@@ -13,12 +15,11 @@ log = get_logger(__name__)
 class Images(SkahaClient):
     """Skaha Image Management."""
 
-    @root_validator
-    def set_server(cls, values: Dict[str, Any]):
+    @model_validator(mode="after")
+    def update_server(self) -> Self:
         """Sets the server path after validation."""
-        values["server"] = f"{values['server']}/{values['version']}/image"
-        values["server"] = values["server"] + "/image"
-        return values
+        self.server = f"{self.server}/{self.version}/image"  # type: ignore
+        return self
 
     def fetch(self, kind: Optional[str] = None) -> List[str]:
         """Get images from Skaha Server.

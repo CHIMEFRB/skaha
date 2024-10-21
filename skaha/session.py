@@ -1,13 +1,15 @@
 """Skaha Headless Session."""
+
 from asyncio import get_event_loop
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from pydantic import root_validator
+from pydantic import model_validator
 from requests.exceptions import HTTPError
 from requests.models import Response
+from typing_extensions import Self
 
 from skaha.client import SkahaClient
-from skaha.models import CreateSpec, FetchSpec
+from skaha.models import ContainerRegistry, CreateSpec, FetchSpec
 from skaha.utils import convert, logs
 from skaha.utils.threaded import scale
 
@@ -15,14 +17,22 @@ log = logs.get_logger(__name__)
 
 
 class Session(SkahaClient):
-    """Skaha Session Client."""
+    """Skaha Session Management Client.
 
-    @root_validator
-    def set_server(cls, values: Dict[str, Any]):
+    Args:
+        SkahaClient (SkahaClient): Base HTTP client.
+
+    Returns:
+        Session: Skaha Session Management Client.
+    """
+
+    @model_validator(mode="after")
+    def set_server(self) -> Self:
         """Sets the server path after validation."""
-        values["server"] = f"{values['server']}/{values['version']}/session"
-        log.debug(f'Server set to {values["server"]}')
-        return values
+        suffix = "session"
+        self.server = f"{self.server}/{self.version}/{suffix}"  # type: ignore
+        log.debug(f"Server set to {self.server}")
+        return self
 
     def fetch(
         self,
@@ -68,11 +78,15 @@ class Session(SkahaClient):
               'startTime': '2222-12-07T05:45:58Z'},
               ...]
         """
-        specification: FetchSpec = FetchSpec(kind=kind, status=status, view=view)
-        parameters = specification.dict(exclude_none=True)
+        values: Dict[str, str] = {}
+        for key, value in {"kind": kind, "status": status, "view": view}.items():
+            if value:
+                values[key] = value
+        spec = FetchSpec(**values)
+        parameters = spec.model_dump(exclude_none=True)
         log.debug(parameters)
         response: Response = self.session.get(url=self.server, params=parameters)  # type: ignore # noqa: E501
-        response.raise_for_status()
+        response.raise_for_status()  # type: ignore # noqa: E501
         return response.json()
 
     def stats(self) -> Dict[str, Any]:
@@ -116,7 +130,7 @@ class Session(SkahaClient):
         parameters: Dict[str, str] = {"view": "event"}
         arguments: List[Any] = []
         for value in id:
-            arguments.append({"url": self.server + "/" + value, "params": parameters})
+            arguments.append({"url": f"{self.server}/{value}", "params": parameters})
         loop = get_event_loop()
         results = loop.run_until_complete(scale(self.session.get, arguments))
         responses: List[Dict[str, Any]] = []
@@ -146,7 +160,7 @@ class Session(SkahaClient):
         parameters: Dict[str, str] = {"view": "logs"}
         arguments: List[Any] = []
         for value in id:
-            arguments.append({"url": self.server + "/" + value, "params": parameters})
+            arguments.append({"url": f"{self.server}/{value}", "params": parameters})
         loop = get_event_loop()
         results = loop.run_until_complete(scale(self.session.get, arguments))
         responses: Dict[str, str] = {}
@@ -171,6 +185,7 @@ class Session(SkahaClient):
         args: Optional[str] = None,
         env: Dict[str, Any] = {},
         replicas: int = 1,
+        registry: Optional[ContainerRegistry] = None,
     ) -> List[str]:
         """Launch a skaha session.
 
@@ -222,7 +237,7 @@ class Session(SkahaClient):
             env=env,
             replicas=replicas,
         )
-        data: Dict[str, Any] = specification.dict(exclude_none=True)
+        data: Dict[str, Any] = specification.model_dump(exclude_none=True)
         log.info(f"Creating {replicas} session(s) with parameters:")
         log.info(data)
         payload: List[Tuple[str, Any]] = []
@@ -263,7 +278,7 @@ class Session(SkahaClient):
             id = [id]
         arguments: List[Any] = []
         for value in id:
-            arguments.append({"url": self.server + "/" + value})
+            arguments.append({"url": f"{self.server}/{value}"})
         loop = get_event_loop()
         results = loop.run_until_complete(scale(self.session.delete, arguments))
         responses: Dict[str, bool] = {}

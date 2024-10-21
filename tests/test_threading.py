@@ -6,7 +6,7 @@ from skaha.utils.threaded import scale
 @pytest.mark.asyncio
 async def test_scale():
     # Define a simple function for testing
-    def square(x):
+    def square(x: int) -> int:
         return x**2
 
     # Define the arguments for the function
@@ -23,7 +23,7 @@ async def test_scale():
 @pytest.mark.asyncio
 async def test_scale_with_error():
     # Define a simple function for testing that raises an error for a specific input
-    def square_or_error(x):
+    def square_or_error(x: int) -> int:
         if x == 5:
             raise ValueError("An error occurred!")
         return x**2
